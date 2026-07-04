@@ -75,11 +75,12 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 .back-btn .icon{font-size:19px}
 
 /* DAY TABS */
-.day-tabs{height:var(--tab-h);display:flex;background:var(--surface);border-bottom:1px solid var(--border);flex:none;overflow:hidden}
+.day-tabs{height:var(--tab-h);display:flex;background:var(--surface);border-bottom:1px solid var(--border);flex:none;overflow:hidden;position:relative}
 .day-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:var(--ink3);cursor:pointer;gap:1px;border:none;background:none;padding:0;transition:color .15s;position:relative}
 .day-tab .d-name{font-weight:500;font-size:12px}
 .day-tab.active{color:var(--accent)}
-.day-tab.active::after{content:'';position:absolute;bottom:0;left:12%;right:12%;height:2px;background:var(--accent);border-radius:2px 2px 0 0}
+.day-tab-indicator{position:absolute;bottom:0;height:2px;background:var(--accent);border-radius:2px 2px 0 0;transition:transform .25s cubic-bezier(.4,0,.2,1),width .25s cubic-bezier(.4,0,.2,1);pointer-events:none}
+@media(prefers-reduced-motion:reduce){.day-tab-indicator{transition:none}}
 
 /* SEGMENT CONTROL */
 .seg-wrap{display:flex;align-items:center;background:var(--surface2);border-radius:8px;padding:2px;gap:1px}
@@ -87,7 +88,7 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 .seg-btn.active{background:var(--surface);color:var(--ink)}
 
 /* WEEK GRID */
-.week-wrap{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:var(--bg)}
+.week-wrap{flex:1;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;background:var(--bg)}
 .week-inner{display:grid;grid-template-columns:40px repeat(7,1fr);min-width:380px;min-height:100%}
 .wk-corner{position:sticky;top:0;left:0;z-index:6;background:var(--surface);border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
 .wk-day-hd{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--border);border-right:1px solid var(--border);padding:6px 2px;text-align:center;font-size:10px;font-weight:500;color:var(--ink2)}
@@ -98,7 +99,7 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 .wk-hour-cell{height:54px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
 .wk-hour-cell:active{background:rgba(58,95,130,.05)}
 .wk-half{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--border);top:27px;pointer-events:none}
-.wk-block{position:absolute;left:2px;right:2px;border-radius:5px;padding:2px 4px;font-size:9px;overflow:hidden;cursor:pointer;z-index:2;transition:filter .1s;display:flex;align-items:center}
+.wk-block{position:absolute;left:2px;right:2px;border-radius:5px;padding:2px 4px;font-size:9px;overflow:hidden;cursor:pointer;z-index:2;transition:filter .1s;display:flex;align-items:flex-start}
 .wk-block:active{filter:brightness(.9)}
 .wk-block-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .wk-block-name{font-weight:700}
@@ -109,19 +110,23 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 .time-gutter{width:var(--gutter-w);flex:none}
 .time-gutter-right{width:var(--gutter-w);flex:none}
 .time-label{height:60px;display:flex;align-items:flex-start;padding:4px 6px 0;font-size:10px;color:var(--ink3);transition:opacity .15s}
-.time-label.compact{opacity:.55;padding-top:2px}
 .blocks-col{flex:1;position:relative}
 .hour-row{height:60px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
 .hour-row:active{background:rgba(58,95,130,.05)}
+.gutter-row{border-bottom:1px solid var(--border)}
 .half-mark{position:absolute;left:0;right:0;top:30px;border-top:1px dashed var(--border);pointer-events:none}
 .add-hint{position:absolute;left:50%;transform:translateX(-50%);font-size:11px;color:var(--ink3);white-space:nowrap;top:50%;margin-top:-8px;pointer-events:none}
 
 /* BLOCKS */
-.block{position:absolute;left:4px;right:4px;border-radius:8px;padding:5px 9px;cursor:pointer;overflow:hidden;transition:filter .1s;z-index:2;box-shadow:inset 3px 0 0 rgba(0,0,0,.16),0 1px 2px rgba(0,0,0,.06);display:flex;align-items:center}
+.block{position:absolute;left:4px;right:4px;border-radius:8px;padding:5px 9px;cursor:pointer;overflow:hidden;transition:filter .1s;z-index:2;box-shadow:inset 3px 0 0 rgba(0,0,0,.16),0 1px 2px rgba(0,0,0,.06);display:flex;align-items:flex-start}
 .block:active{filter:brightness(.9)}
 .block-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;letter-spacing:.01em}
 .block-name{font-weight:700}
 .block-time{font-weight:400;opacity:.8;margin-left:6px;font-size:11px;font-variant-numeric:tabular-nums}
+
+@keyframes blocks-fade-in{from{opacity:0}to{opacity:1}}
+.blocks-col.fade-in{animation:blocks-fade-in .22s ease}
+@media(prefers-reduced-motion:reduce){.blocks-col.fade-in{animation:none}}
 
 /* SCREEN CONTAINER */
 .screens{position:relative;flex:1;overflow:hidden}
@@ -281,7 +286,7 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
         <div class="blocks-col" id="blocksCol">
           <div class="add-hint" id="addHint">タップしてブロックを追加</div>
         </div>
-        <div class="time-gutter-right" aria-hidden="true"></div>
+        <div class="time-gutter-right" id="timeGutterRight" aria-hidden="true"></div>
       </div>
     </div>
   </div>
@@ -515,8 +520,8 @@ let currentView='day'; // 'day' | 'week'
 let activeDayIndex=(()=>{const d=new Date().getDay();return d===0?6:d-1;})();
 let editingBlock=null,editingCat=null,selNotifMin=10,selColor=PAL[0];
 let copySet=new Set(),catFromBlock=false;
-let fitMode=true; // 1画面フィット表示（常時オン。空き時間を圧縮し予定のある時間に空間を回す）
-let rowHeights=null,rowOffsets=null; // フィット時の可変行高さ（空き時間を圧縮し予定のある時間に空間を回す）
+let hourH=HOUR_H; // 1日ビューの1時間あたりの高さ（画面に収まるよう均等に算出）
+let wkHourH=WK_HOUR_H; // 週ビューの1時間あたりの高さ（同様に画面フィット）
 
 /* 現在の設定タブ画面（settings系をナビで管理） */
 let activeTab='home'; // home / stats / settings
@@ -596,61 +601,19 @@ function switchView(v){
 }
 
 /* ============================================================
-   FIT VIEW — 1日を1画面に収める
-   予定のない時間帯は細く畳み、予定のある時間帯にゆとりを回す。
-   罫線（各時間の区切り線）は全時間帯で維持したまま、高さだけ可変にする。
+   FIT VIEW — 1日を1画面に収める（全ての時間を均等な高さで表示）
    ============================================================ */
-const FIT_EMPTY_H=14, FIT_ROW_MIN=22, FIT_ACTIVE_MAX=90;
-
-function applyFitRowHeights(di){
+function computeHourH(){
   const wrap=document.getElementById('timelineWrap');
   const avail=Math.max(wrap.clientHeight||600,200);
-  const dayBlocks=blocks.filter(b=>b.dayIndex===di);
-  const activeFlags=[];
-  for(let h=START_H;h<END_H;h++){
-    const active=dayBlocks.some(b=>{
-      const[sh,sm]=b.start.split(':').map(Number);
-      const[eh,em]=b.end.split(':').map(Number);
-      const s=sh+sm/60,e=eh+em/60;
-      return s<h+1 && e>h;
-    });
-    activeFlags.push(active);
-  }
-  const activeCount=activeFlags.filter(Boolean).length;
-  const emptyCount=activeFlags.length-activeCount;
+  hourH=Math.max(Math.floor(avail/(END_H-START_H)),18);
+}
 
-  let heights;
-  if(activeCount===0||emptyCount===0){
-    const h=Math.max(Math.floor(avail/activeFlags.length),FIT_ROW_MIN);
-    heights=activeFlags.map(()=>h);
-  } else {
-    let activeH=Math.floor((avail-emptyCount*FIT_EMPTY_H)/activeCount);
-    if(activeH>FIT_ACTIVE_MAX) activeH=FIT_ACTIVE_MAX;
-    if(activeH<FIT_ROW_MIN){
-      const h=Math.max(Math.floor(avail/activeFlags.length),18);
-      heights=activeFlags.map(()=>h);
-    } else {
-      heights=activeFlags.map(a=>a?activeH:FIT_EMPTY_H);
-    }
-  }
-
-  rowHeights=heights;
-  rowOffsets=[0];
-  heights.forEach(h=>rowOffsets.push(rowOffsets[rowOffsets.length-1]+h));
-
-  const gutter=document.getElementById('timeGutter');
-  const col=document.getElementById('blocksCol');
-  const labels=gutter.querySelectorAll('.time-label');
-  const rows=col.querySelectorAll('.hour-row');
-  labels.forEach((lbl,i)=>{
-    lbl.style.height=heights[i]+'px';
-    lbl.classList.toggle('compact',heights[i]<24);
-  });
-  rows.forEach((row,i)=>{
-    row.style.height=heights[i]+'px';
-    const half=row.querySelector('.half-mark');
-    if(half) half.style.top=(heights[i]/2)+'px';
-  });
+function computeWeekRowH(){
+  const wrap=document.getElementById('weekWrap');
+  const hdH=document.querySelector('.wk-day-hd')?.offsetHeight||32;
+  const avail=Math.max((wrap.clientHeight||600)-hdH,150);
+  wkHourH=Math.max(Math.floor(avail/(END_H-START_H)),16);
 }
 
 /* ============================================================
@@ -672,6 +635,8 @@ function buildWeekGrid(){
     inner.appendChild(hd);
   });
 
+  computeWeekRowH();
+
   // 時間ラベル列 + 各曜日列
   const timeCol=mk('div','wk-time-col');
   const dayCols=DAYS.map((_,i)=>{
@@ -683,12 +648,15 @@ function buildWeekGrid(){
   for(let h=START_H;h<END_H;h++){
     const lbl=mk('div','wk-time-lbl');
     lbl.textContent=h+':00';
+    lbl.style.height=wkHourH+'px';
     timeCol.appendChild(lbl);
 
     dayCols.forEach((col,di)=>{
       const cell=mk('div','wk-hour-cell');
       cell.dataset.hour=h;
+      cell.style.height=wkHourH+'px';
       const half=mk('div','wk-half');
+      half.style.top=(wkHourH/2)+'px';
       cell.appendChild(half);
       cell.addEventListener('click',e=>{
         if(e.target.classList.contains('wk-block')||e.target.closest('.wk-block')) return;
@@ -696,8 +664,7 @@ function buildWeekGrid(){
         switchView('day');
         // 1日ビューに切り替えてから該当曜日タブをアクティブ化
         setTimeout(()=>{
-          document.querySelectorAll('.day-tab').forEach((b,j)=>b.classList.toggle('active',j===di));
-          renderBlocksForDay(di);
+          selectDay(di);
           openAddBlock(h);
         },50);
       });
@@ -722,11 +689,12 @@ function renderWeekBlocks(){
     if(!col) return;
     const cat=cats.find(c=>c.id===b.catId)||cats[0];
     const top=wkTimeToY(b.start);
-    const h=wkTimeToY(b.end)-top;
-    if(h<=2) return;
+    const rawH=wkTimeToY(b.end)-top;
+    if(rawH<=2) return;
+    const h=Math.max(rawH-2,14); // 隣接する予定との間に約2pxの余白
 
     const div=mk('div','wk-block');
-    div.style.cssText=`top:${top}px;height:${Math.max(h,14)}px;background:${cat.color};color:${fgColor(cat.color)}`;
+    div.style.cssText=`top:${top+1}px;height:${h}px;background:${cat.color};color:${fgColor(cat.color)}`;
 
     const line=mk('div','wk-block-line');
     line.innerHTML=`<span class="wk-block-name">${cat.name}</span>`;
@@ -738,8 +706,7 @@ function renderWeekBlocks(){
       activeDayIndex=b.dayIndex;
       switchView('day');
       setTimeout(()=>{
-        document.querySelectorAll('.day-tab').forEach((btn,j)=>btn.classList.toggle('active',j===b.dayIndex));
-        renderBlocksForDay(b.dayIndex);
+        selectDay(b.dayIndex);
         openEditBlock(b);
       },50);
     });
@@ -750,7 +717,7 @@ function renderWeekBlocks(){
 
 function wkTimeToY(t){
   const[h,m]=t.split(':').map(Number);
-  return((h+m/60)-START_H)*WK_HOUR_H;
+  return((h+m/60)-START_H)*wkHourH;
 }
 
 function mk(tag,cls){
@@ -797,26 +764,32 @@ function _animate(fromEl, toEl, type){
    TIMELINE
    ============================================================ */
 function buildTimeline(){
+  computeHourH();
   const gutter=document.getElementById('timeGutter');
+  const gutterR=document.getElementById('timeGutterRight');
   const col=document.getElementById('blocksCol');
   gutter.innerHTML='';
+  gutterR.innerHTML='';
   col.querySelectorAll('.block,.hour-row').forEach(e=>e.remove());
   for(let h=START_H;h<END_H;h++){
     const lbl=document.createElement('div');
-    lbl.className='time-label';lbl.textContent=h+':00';lbl.style.height=HOUR_H+'px';
+    lbl.className='time-label';lbl.textContent=h+':00';lbl.style.height=hourH+'px';
     gutter.appendChild(lbl);
     const row=document.createElement('div');
-    row.className='hour-row';row.dataset.hour=h;row.style.height=HOUR_H+'px';
-    const half=document.createElement('div');half.className='half-mark';half.style.top=(HOUR_H/2)+'px';
+    row.className='hour-row';row.dataset.hour=h;row.style.height=hourH+'px';
+    const half=document.createElement('div');half.className='half-mark';half.style.top=(hourH/2)+'px';
     row.appendChild(half);
     row.addEventListener('click',()=>openAddBlock(h));
     col.appendChild(row);
+    // 罫線を右余白まで途切れず延長する（クリックは不要な素の行）
+    const rowR=document.createElement('div');
+    rowR.className='gutter-row';rowR.style.height=hourH+'px';
+    gutterR.appendChild(rowR);
   }
-  renderBlocksForDay(activeDayIndex); // fitMode時はここで行の高さも即座に補正される
+  renderBlocksForDay(activeDayIndex);
 }
 
 function renderBlocksForDay(di){
-  if(fitMode) applyFitRowHeights(di);
   const col=document.getElementById('blocksCol');
   col.querySelectorAll('.block').forEach(e=>e.remove());
   const hint=document.getElementById('addHint');
@@ -824,12 +797,12 @@ function renderBlocksForDay(di){
   hint.style.display=dayBlocks.length?'none':'';
   dayBlocks.forEach(b=>{
     const cat=cats.find(c=>c.id===b.catId)||cats[0];
-    const top=timeToY(b.start),h=timeToY(b.end)-top;
-    if(h<=0) return;
-    const bh=Math.max(h,14);
+    const top=timeToY(b.start),rawH=timeToY(b.end)-top;
+    if(rawH<=0) return;
+    const bh=Math.max(rawH-2,14); // 隣接する予定との間に約2pxの余白
     const div=document.createElement('div');
     div.className='block';
-    div.style.cssText=`top:${top}px;height:${bh}px;background:${cat.color};color:${fgColor(cat.color)}`;
+    div.style.cssText=`top:${top+1}px;height:${bh}px;background:${cat.color};color:${fgColor(cat.color)}`;
     const line=document.createElement('div');
     line.className='block-line';
     line.innerHTML = bh>=18
@@ -848,24 +821,49 @@ function buildDayTabs(){
     const btn=document.createElement('button');
     btn.className='day-tab'+(i===activeDayIndex?' active':'');
     btn.innerHTML=`<span class="d-name">${d}</span>`;
-    btn.addEventListener('click',()=>{
-      activeDayIndex=i;
-      document.querySelectorAll('.day-tab').forEach((b,j)=>b.classList.toggle('active',j===i));
-      renderBlocksForDay(i);
-    });
+    btn.addEventListener('click',()=>selectDay(i));
     wrap.appendChild(btn);
   });
+  const ind=document.createElement('span');
+  ind.className='day-tab-indicator';ind.id='dayTabIndicator';
+  wrap.appendChild(ind);
+  moveDayTabIndicator(activeDayIndex,false);
+}
+
+function moveDayTabIndicator(i,animate){
+  const wrap=document.getElementById('dayTabs');
+  const ind=document.getElementById('dayTabIndicator');
+  if(!wrap||!ind) return;
+  const tabW=wrap.clientWidth/DAYS.length;
+  const w=tabW*0.76;
+  const x=tabW*i+(tabW-w)/2;
+  if(!animate){
+    ind.style.transition='none';
+    ind.style.width=w+'px';
+    ind.style.transform=`translateX(${x}px)`;
+    void ind.offsetWidth;
+    ind.style.transition='';
+  } else {
+    ind.style.width=w+'px';
+    ind.style.transform=`translateX(${x}px)`;
+  }
+}
+
+// 曜日切替：選択バーをスライド、スケジュール画面をフェードインさせる
+function selectDay(i){
+  activeDayIndex=i;
+  document.querySelectorAll('.day-tab').forEach((b,j)=>b.classList.toggle('active',j===i));
+  moveDayTabIndicator(i,true);
+  const col=document.getElementById('blocksCol');
+  col.classList.remove('fade-in');
+  void col.offsetWidth;
+  renderBlocksForDay(i);
+  col.classList.add('fade-in');
 }
 
 function timeToY(t){
   const[h,m]=t.split(':').map(Number);
-  const hourFloat=h+m/60;
-  if(!fitMode||!rowHeights) return(hourFloat-START_H)*HOUR_H;
-  let idx=Math.floor(hourFloat)-START_H;
-  if(idx<0) idx=0;
-  if(idx>=rowHeights.length) idx=rowHeights.length-1;
-  const frac=hourFloat-Math.floor(hourFloat);
-  return rowOffsets[idx]+frac*rowHeights[idx];
+  return((h+m/60)-START_H)*hourH;
 }
 function fgColor(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return(0.299*r+0.587*g+0.114*b)/255>0.55?'rgba(0,0,0,.8)':'rgba(255,255,255,.95)';}
 function pad(n){return String(n).padStart(2,'0');}
@@ -976,10 +974,19 @@ function saveCat(){
 }
 function closeCatModal(){closeModal('catModal');editingCat=null;}
 function deleteCat(cat){
-  if(blocks.some(b=>b.catId===cat.id)){showToast('使用中のカテゴリは削除できません');return;}
-  if(!confirm(cat.name+'を削除しますか？'))return;
+  const inUse=blocks.some(b=>b.catId===cat.id);
+  const msg=inUse
+    ? `「${cat.name}」を削除しますか？\nこのカテゴリが設定された予定もすべて削除されます。この操作は取り消せません。`
+    : `「${cat.name}」を削除しますか？`;
+  if(!confirm(msg))return;
+  if(inUse){
+    blocks=blocks.filter(b=>b.catId!==cat.id);
+    Store.saveB(blocks);
+  }
   cats=cats.filter(c=>c!==cat);Store.saveC(cats);
-  renderCatSettings();renderBlocksForDay(activeDayIndex);showToast('削除しました');
+  renderCatSettings();renderBlocksForDay(activeDayIndex);
+  if(currentView==='week') renderWeekBlocks();
+  showToast('削除しました');
 }
 
 /* ============================================================
@@ -1218,12 +1225,14 @@ buildDayTabs();
 buildTimeline();
 document.getElementById('cr-year').textContent = new Date().getFullYear();
 
-// 画面サイズ・向き変更時にフィット表示を追従
+// 画面サイズ・向き変更時に1日/週ビューのフィット表示を追従
 let resizeTimer;
 window.addEventListener('resize',()=>{
-  if(!fitMode||currentView!=='day')return;
   clearTimeout(resizeTimer);
-  resizeTimer=setTimeout(()=>{renderBlocksForDay(activeDayIndex);},120);
+  resizeTimer=setTimeout(()=>{
+    if(currentView==='day'){ buildTimeline(); moveDayTabIndicator(activeDayIndex,false); }
+    else if(currentView==='week'){ buildWeekGrid(); }
+  },120);
 });
 </script>
 </body>
