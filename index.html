@@ -90,12 +90,12 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 /* WEEK GRID */
 .week-wrap{flex:1;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;background:var(--bg)}
 .week-inner{display:grid;grid-template-columns:40px repeat(7,1fr);grid-auto-rows:min-content;align-content:start;min-width:380px;min-height:100%}
-.wk-corner{height:var(--wk-hd-h);position:sticky;top:0;left:0;z-index:6;background:var(--surface);border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
-.wk-day-hd{height:var(--wk-hd-h);box-sizing:border-box;position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--border);border-right:1px solid var(--border);padding:6px 2px;text-align:center;font-size:10px;font-weight:500;color:var(--ink2);display:flex;align-items:center;justify-content:center}
+.wk-corner{height:var(--wk-hd-h);position:sticky;top:0;left:0;z-index:6;background:var(--bg);border-bottom:1px solid var(--border)}
+.wk-day-hd{height:var(--wk-hd-h);box-sizing:border-box;position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--border);padding:6px 2px;text-align:center;font-size:10px;font-weight:500;color:var(--ink2);display:flex;align-items:center;justify-content:center}
 .wk-day-hd.today{color:var(--accent);background:var(--accent-l)}
-.wk-time-col{position:sticky;left:0;z-index:4;background:var(--surface);border-right:1px solid var(--border)}
-.wk-time-lbl{height:54px;display:flex;align-items:flex-start;padding:3px 4px 0;font-size:9px;color:var(--ink3);border-bottom:1px solid var(--border)}
-.wk-day-col{position:relative;border-right:1px solid var(--border)}
+.wk-time-col{position:sticky;left:0;z-index:4;background:var(--bg)}
+.wk-time-lbl{height:54px;display:flex;align-items:flex-start;padding:3px 4px 0;font-size:9px;color:var(--ink3)}
+.wk-day-col{position:relative}
 .wk-hour-cell{height:54px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
 .wk-hour-cell:active{background:rgba(58,95,130,.05)}
 .wk-half{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--border);top:27px;pointer-events:none}
@@ -213,8 +213,15 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 .modal-body{padding:16px}
 .field{margin-bottom:14px}
 .field label{display:block;font-size:12px;color:var(--ink3);font-weight:500;margin-bottom:5px}
-.field input,.field select{width:100%;padding:11px 12px;border:1px solid var(--border2);border-radius:var(--r-sm);font:inherit;font-size:15px;color:var(--ink);background:var(--surface);-webkit-appearance:none;outline:none}
+.field input,.field select{width:100%;padding:11px 12px;border:1px solid var(--border2);border-radius:var(--r-sm);font:inherit;font-size:15px;color:var(--ink);background:var(--surface);-webkit-appearance:none;appearance:none;outline:none}
 .field input:focus,.field select:focus{border-color:var(--accent)}
+.field select{
+  padding-right:36px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -960 960 960'%3E%3Cpath fill='%236b6b70' d='M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;
+  background-position:right 10px center;
+  background-size:18px;
+}
 .field-row{display:flex;gap:10px}
 .field-row .field{flex:1}
 .chips{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:4px}
@@ -226,6 +233,7 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 .copy-day.on{background:var(--accent);color:#fff}
 .copy-quick{display:flex;gap:8px;margin-top:8px}
 .copy-quick-btn{flex:1;padding:8px 0;border-radius:var(--r-sm);border:none;background:var(--surface2);color:var(--ink2);font:inherit;font-size:12px;font-weight:500;cursor:pointer;transition:background .15s,color .15s}
+.copy-quick-btn.on{background:var(--accent);color:#fff}
 .copy-quick-btn:active{opacity:.8}
 .modal-footer{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border)}
 .btn{flex:1;padding:13px;border-radius:var(--r-sm);border:none;font:inherit;font-size:15px;font-weight:500;cursor:pointer;background:var(--surface2);color:var(--ink2);display:flex;align-items:center;justify-content:center;gap:6px}
@@ -412,8 +420,8 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
         </div>
       </div>
       <div class="field-row">
-        <div class="field"><label>開始</label><input type="time" id="b-start"></div>
-        <div class="field"><label>終了</label><input type="time" id="b-end"></div>
+        <div class="field"><label>開始</label><input type="time" id="b-start" step="300"></div>
+        <div class="field"><label>終了</label><input type="time" id="b-end" step="300"></div>
       </div>
       <div class="field">
         <label>通知</label>
@@ -429,8 +437,8 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
         <label>他の曜日にも複製</label>
         <div class="copy-days" id="copyDays"></div>
         <div class="copy-quick">
-          <button type="button" class="copy-quick-btn" onclick="quickCopyDays('all')">毎日</button>
-          <button type="button" class="copy-quick-btn" onclick="quickCopyDays('weekday')">平日のみ</button>
+          <button type="button" class="copy-quick-btn" data-mode="all" onclick="quickCopyDays('all')">毎日</button>
+          <button type="button" class="copy-quick-btn" data-mode="weekday" onclick="quickCopyDays('weekday')">平日のみ</button>
         </div>
       </div>
     </div>
@@ -914,9 +922,14 @@ function buildCopyDays(){
     const btn=document.createElement('button');
     btn.className='copy-day'+(i===activeDayIndex?' src':'');
     btn.textContent=d;
-    if(i!==activeDayIndex)btn.addEventListener('click',()=>{copySet.has(i)?copySet.delete(i):copySet.add(i);btn.classList.toggle('on',copySet.has(i));});
+    if(i!==activeDayIndex)btn.addEventListener('click',()=>{
+      copySet.has(i)?copySet.delete(i):copySet.add(i);
+      btn.classList.toggle('on',copySet.has(i));
+      updateQuickCopyHighlight();
+    });
     wrap.appendChild(btn);
   });
+  updateQuickCopyHighlight();
 }
 function quickCopyDays(mode){
   // 平日 = DAYS配列の先頭5つ（月〜金）
@@ -926,6 +939,18 @@ function quickCopyDays(mode){
     include ? copySet.add(i) : copySet.delete(i);
     btn.classList.toggle('on',include);
   });
+  updateQuickCopyHighlight();
+}
+// 現在の複製先の選択状態が「毎日」「平日のみ」の定義と一致するかを判定し、
+// クイックボタンのハイライトを同期する（曜日を個別に外すと自動で解除される）
+function updateQuickCopyHighlight(){
+  const nonSrc=[...Array(DAYS.length).keys()].filter(i=>i!==activeDayIndex);
+  const weekday=nonSrc.filter(i=>i<5);
+  const weekend=nonSrc.filter(i=>i>=5);
+  const allOn=nonSrc.every(i=>copySet.has(i));
+  const weekdayOn=weekday.every(i=>copySet.has(i))&&weekend.every(i=>!copySet.has(i));
+  document.querySelector('.copy-quick-btn[data-mode="all"]')?.classList.toggle('on',allOn);
+  document.querySelector('.copy-quick-btn[data-mode="weekday"]')?.classList.toggle('on',weekdayOn);
 }
 function selChip(el){selNotifMin=Number(el.dataset.min);updateChips();}
 function updateChips(){document.querySelectorAll('#notifChips .chip').forEach(c=>c.classList.toggle('on',Number(c.dataset.min)===selNotifMin));}
