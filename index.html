@@ -10,7 +10,7 @@
   --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
   --ink:#1c1c1e;--ink2:#6b6b70;--ink3:#aeaeb2;
   --accent:#3a5f82;--accent-l:#e6eef5;
-  --nav-h:60px;--top-h:52px;--tab-h:40px;--r:12px;--r-sm:8px;--ad-h:52px;--gutter-w:56px;--wk-hd-h:32px;
+  --nav-h:60px;--top-h:52px;--tab-h:32px;--r:12px;--r-sm:8px;--ad-h:52px;--gutter-w:56px;--wk-hd-h:32px;
 }
 .icon{width:1em;height:1em;fill:currentColor;display:block;flex:none}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -79,8 +79,8 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 
 /* DAY TABS */
 .day-tabs{height:var(--tab-h);display:flex;background:var(--surface);border-bottom:1px solid var(--border);flex:none;overflow:hidden;position:relative}
-.day-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:var(--ink3);cursor:pointer;gap:1px;border:none;background:none;padding:0;transition:color .15s;position:relative}
-.day-tab .d-name{font-weight:500;font-size:12px}
+.day-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:var(--ink2);cursor:pointer;gap:1px;border:none;background:none;padding:0;transition:color .15s;position:relative}
+.day-tab .d-name{font-weight:500;font-size:10px}
 .day-tab.active{color:var(--accent)}
 .day-tab-indicator{position:absolute;bottom:0;height:2px;background:var(--accent);border-radius:2px 2px 0 0;transition:transform .25s cubic-bezier(.4,0,.2,1),width .25s cubic-bezier(.4,0,.2,1);pointer-events:none}
 @media(prefers-reduced-motion:reduce){.day-tab-indicator{transition:none}}
@@ -123,6 +123,9 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 /* BLOCKS */
 .block{position:absolute;left:4px;right:4px;border-radius:8px;padding:5px 9px;cursor:pointer;overflow:hidden;transition:filter .1s;z-index:2;box-shadow:inset 3px 0 0 rgba(0,0,0,.16),0 1px 2px rgba(0,0,0,.06);display:flex;align-items:flex-start;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.28)}
 .block:active{filter:brightness(.9)}
+/* 高さが最小に近いブロックは文字が切れないよう縦中央寄せ＋余白を詰める */
+.block.compact{padding-top:0;padding-bottom:0;align-items:center;border-radius:6px}
+.block.compact .block-line{font-size:11px;line-height:1.1}
 .block-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;letter-spacing:.01em}
 .block-name{font-weight:700}
 .block-time{font-weight:400;opacity:.8;margin-left:6px;font-size:11px;font-variant-numeric:tabular-nums}
@@ -223,13 +226,21 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 .field label{display:block;font-size:12px;color:var(--ink3);font-weight:500;margin-bottom:5px}
 .field input,.field select{width:100%;padding:11px 12px;border:1px solid var(--border2);border-radius:var(--r-sm);font:inherit;font-size:15px;color:var(--ink);background:var(--surface);-webkit-appearance:none;appearance:none;outline:none}
 .field input:focus,.field select:focus{border-color:var(--accent)}
-.field select{
+.field select,.time-field{
   padding-right:36px;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -960 960 960'%3E%3Cpath fill='%236b6b70' d='M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z'/%3E%3C/svg%3E");
   background-repeat:no-repeat;
   background-position:right 10px center;
   background-size:18px;
 }
+/* 時刻フィールド（タップで下から2/3のリストを開く） */
+.time-field{width:100%;padding:11px 12px;border:1px solid var(--border2);border-radius:var(--r-sm);font:inherit;font-size:15px;color:var(--ink);background-color:var(--surface);text-align:left;cursor:pointer;outline:none;font-variant-numeric:tabular-nums}
+.time-field:active{border-color:var(--accent)}
+.time-picker-modal{height:66vh;display:flex;flex-direction:column;overflow:hidden}
+.time-picker-list{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 0 max(12px,env(safe-area-inset-bottom))}
+.tp-item{padding:13px 20px;font-size:16px;color:var(--ink);cursor:pointer;text-align:center;font-variant-numeric:tabular-nums}
+.tp-item:active{background:var(--surface2)}
+.tp-item.sel{color:var(--accent);font-weight:700;background:var(--accent-l)}
 .field-row{display:flex;gap:10px}
 .field-row .field{flex:1}
 .chips{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:4px}
@@ -292,7 +303,7 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
         <button class="seg-btn active" id="seg-day" onclick="switchView('day')">1日</button>
         <button class="seg-btn" id="seg-week" onclick="switchView('week')">週</button>
       </div>
-      <button class="icon-btn" onclick="openAddBlock()" title="追加"><svg class="icon" viewBox="0 -960 960 960"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg></button>
+      <button class="icon-btn" onclick="openAddBlock(null,true)" title="追加"><svg class="icon" viewBox="0 -960 960 960" ><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg></button>
     </div>
   </div>
 
@@ -430,8 +441,8 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
         </div>
       </div>
       <div class="field-row">
-        <div class="field"><label>開始</label><select id="b-start"></select></div>
-        <div class="field"><label>終了</label><select id="b-end"></select></div>
+        <div class="field"><label>開始</label><button type="button" class="time-field" id="b-start" onclick="openTimePicker('b-start')"></button></div>
+        <div class="field"><label>終了</label><button type="button" class="time-field" id="b-end" onclick="openTimePicker('b-end')"></button></div>
       </div>
       <div class="field">
         <label>通知</label>
@@ -444,7 +455,7 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
         </div>
       </div>
       <div class="field">
-        <label>他の曜日にも複製</label>
+        <label id="copyDaysLabel">他の曜日にも複製</label>
         <div class="copy-days" id="copyDays"></div>
         <div class="copy-quick">
           <button type="button" class="copy-quick-btn" data-mode="all" onclick="quickCopyDays('all')">毎日</button>
@@ -480,6 +491,18 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
     <div class="modal-footer">
       <button class="btn btn-primary" onclick="saveCat()">保存</button>
     </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: 時刻ピッカー（画面高の約2/3のリスト） ===== -->
+<div class="modal-bg" id="timePickerModal">
+  <div class="modal time-picker-modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title" id="timePickerTitle">時刻を選択</span>
+      <button class="modal-close" onclick="closeModal('timePickerModal')"><svg class="icon" viewBox="0 -960 960 960"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></button>
+    </div>
+    <div class="time-picker-list" id="timePickerList"></div>
   </div>
 </div>
 
@@ -552,7 +575,7 @@ let masterNotif=Store.notif();
 let currentView='day'; // 'day' | 'week'
 let activeDayIndex=(()=>{const d=new Date().getDay();return d===0?6:d-1;})();
 let editingBlock=null,editingCat=null,selNotifMin=10,selColor=PAL[0];
-let copySet=new Set(),catFromBlock=false;
+let copySet=new Set(),catFromBlock=false,copyFreeMode=false;
 let hourH=HOUR_H; // 1日ビューの1時間あたりの高さ（画面に収まるよう均等に算出）
 let wkHourH=WK_HOUR_H; // 週ビューの1時間あたりの高さ（同様に画面フィット）
 
@@ -838,20 +861,32 @@ function buildTimeline(){
   renderBlocksForDay(activeDayIndex);
 }
 
+function tMin(t){const[h,m]=t.split(':').map(Number);return h*60+m;}
 function renderBlocksForDay(di){
   const col=document.getElementById('blocksCol');
   col.querySelectorAll('.block').forEach(e=>e.remove());
   const hint=document.getElementById('addHint');
-  const dayBlocks=blocks.filter(b=>b.dayIndex===di);
+  const dayBlocks=blocks.filter(b=>b.dayIndex===di)
+    .slice().sort((a,b)=>tMin(a.start)-tMin(b.start)||tMin(a.end)-tMin(b.end));
   hint.style.display=dayBlocks.length?'none':'';
-  dayBlocks.forEach(b=>{
+
+  // 重なり判定：各ブロックについて、時間が重なる「先行ブロック」の数を段数(depth)とし、
+  // その分だけ右へずらして重なりが見えるようにする
+  const INDENT=14;
+  dayBlocks.forEach((b,i)=>{
     const cat=cats.find(c=>c.id===b.catId)||cats[0];
     const top=timeToY(b.start),rawH=timeToY(b.end)-top;
     if(rawH<=0) return;
     const bh=Math.max(rawH-2,14); // 隣接する予定との間に約2pxの余白
+    let depth=0;
+    for(let j=0;j<i;j++){
+      const a=dayBlocks[j];
+      if(tMin(a.start)<tMin(b.end)&&tMin(a.end)>tMin(b.start)) depth++;
+    }
+    const compact = bh<30;
     const div=document.createElement('div');
-    div.className='block';
-    div.style.cssText=`top:${top+1}px;height:${bh}px;background:${cat.color}`;
+    div.className='block'+(compact?' compact':'');
+    div.style.cssText=`top:${top+1}px;height:${bh}px;left:${4+depth*INDENT}px;background:${cat.color};z-index:${2+i}`;
     const line=document.createElement('div');
     line.className='block-line';
     line.innerHTML = bh>=18
@@ -920,13 +955,14 @@ function pad(n){return String(n).padStart(2,'0');}
 /* ============================================================
    BLOCK MODAL
    ============================================================ */
-function openAddBlock(hour){
+function openAddBlock(hour,fromHeader){
   editingBlock=null;
   document.getElementById('blockModalTitle').textContent='ブロックを追加';
   document.getElementById('btnDel').style.display='none';
   buildTimeSelect('b-start', hour!=null?pad(hour)+':00':pad(START_H)+':00');
   buildTimeSelect('b-end', hour!=null?pad(Math.min(hour+1,END_H))+':00':pad(START_H+1)+':00');
-  selNotifMin=10;buildCatSelect();buildCopyDays();updateChips();
+  // ヘッダーの＋からの追加は特定曜日に縛らず、どの曜日にも自由に付けられるようにする
+  selNotifMin=10;buildCatSelect();buildCopyDays(fromHeader===true);updateChips();
   openModal('blockModal');
 }
 function openEditBlock(b){
@@ -935,33 +971,54 @@ function openEditBlock(b){
   document.getElementById('btnDel').style.display='';
   buildTimeSelect('b-start', b.start);
   buildTimeSelect('b-end', b.end);
-  selNotifMin=b.notifMin??10;buildCatSelect(b.catId);buildCopyDays();updateChips();
+  selNotifMin=b.notifMin??10;buildCatSelect(b.catId);buildCopyDays(false);updateChips();
   openModal('blockModal');
 }
 function buildCatSelect(selId){
   document.getElementById('b-cat').innerHTML=cats.map(c=>`<option value="${c.id}"${c.id===selId?' selected':''}>${c.name}</option>`).join('');
 }
-// 時刻セレクトを5分刻みで生成（00:00〜24:00）。既存の非5分値も欠落しないよう補う
+// 時刻フィールドに値を設定
 function buildTimeSelect(id,value){
   const el=document.getElementById(id);
-  let out='',found=false;
+  el.dataset.value=value;
+  el.textContent=value;
+}
+// 5分刻みの時刻リスト（00:00〜24:00）を下から2/3の高さで表示
+let timePickerTarget=null;
+function openTimePicker(id){
+  timePickerTarget=id;
+  const cur=document.getElementById(id).dataset.value;
+  document.getElementById('timePickerTitle').textContent = id==='b-start'?'開始時刻':'終了時刻';
+  const list=document.getElementById('timePickerList');
+  let html='';
   for(let mins=0;mins<=1440;mins+=5){
     const v=pad(Math.floor(mins/60))+':'+pad(mins%60);
-    if(v===value) found=true;
-    out+=`<option value="${v}">${v}</option>`;
+    html+=`<div class="tp-item${v===cur?' sel':''}" onclick="pickTime('${v}')">${v}</div>`;
   }
-  if(value&&!found) out=`<option value="${value}">${value}</option>`+out;
-  el.innerHTML=out;
-  el.value=value;
+  list.innerHTML=html;
+  openModal('timePickerModal');
+  // 現在値を中央へスクロール
+  requestAnimationFrame(()=>{const sel=list.querySelector('.tp-item.sel');if(sel)sel.scrollIntoView({block:'center'});});
 }
-function buildCopyDays(){
+function pickTime(v){
+  if(timePickerTarget) buildTimeSelect(timePickerTarget,v);
+  timePickerTarget=null;
+  closeModal('timePickerModal');
+}
+function buildCopyDays(freeSelect){
+  copyFreeMode=freeSelect===true;
   copySet.clear();
+  // ラベルとクイックボタンの文言を切り替え
+  document.getElementById('copyDaysLabel').textContent=copyFreeMode?'追加する曜日':'他の曜日にも複製';
   const wrap=document.getElementById('copyDays');wrap.innerHTML='';
   DAYS.forEach((d,i)=>{
     const btn=document.createElement('button');
-    btn.className='copy-day'+(i===activeDayIndex?' src':'');
+    // 自由選択モードでは基準曜日を固定(src)にせず通常ボタン化し、初期選択のみ付ける
+    const isSrc = !copyFreeMode && i===activeDayIndex;
+    btn.className='copy-day'+(isSrc?' src':'');
     btn.textContent=d;
-    if(i!==activeDayIndex)btn.addEventListener('click',()=>{
+    if(copyFreeMode && i===activeDayIndex){ copySet.add(i); btn.classList.add('on'); }
+    if(!isSrc) btn.addEventListener('click',()=>{
       copySet.has(i)?copySet.delete(i):copySet.add(i);
       btn.classList.toggle('on',copySet.has(i));
       updateQuickCopyHighlight();
@@ -973,21 +1030,22 @@ function buildCopyDays(){
 function quickCopyDays(mode){
   // 平日 = 月〜金（index<5）、土日 = 土日（index>=5）
   document.querySelectorAll('#copyDays .copy-day').forEach((btn,i)=>{
-    if(i===activeDayIndex) return;
+    if(!copyFreeMode && i===activeDayIndex) return; // 複製モードでは基準曜日は固定
     const include = mode==='all' ? true : mode==='weekday' ? i<5 : i>=5;
     include ? copySet.add(i) : copySet.delete(i);
     btn.classList.toggle('on',include);
   });
   updateQuickCopyHighlight();
 }
-// 現在の複製先の選択状態が各クイック定義と一致するかを判定し、
+// 現在の選択状態が各クイック定義と一致するかを判定し、
 // ボタンのハイライトを同期する（曜日を個別に外すと自動で解除される）
 function updateQuickCopyHighlight(){
-  const nonSrc=[...Array(DAYS.length).keys()].filter(i=>i!==activeDayIndex);
-  const weekday=nonSrc.filter(i=>i<5);
-  const weekend=nonSrc.filter(i=>i>=5);
+  // 自由選択モードでは基準曜日も候補に含める
+  const days=[...Array(DAYS.length).keys()].filter(i=>copyFreeMode||i!==activeDayIndex);
+  const weekday=days.filter(i=>i<5);
+  const weekend=days.filter(i=>i>=5);
   const has=i=>copySet.has(i), none=arr=>arr.every(i=>!has(i)), all=arr=>arr.length>0&&arr.every(has);
-  document.querySelector('.copy-quick-btn[data-mode="all"]')?.classList.toggle('on',all(nonSrc));
+  document.querySelector('.copy-quick-btn[data-mode="all"]')?.classList.toggle('on',all(days));
   document.querySelector('.copy-quick-btn[data-mode="weekday"]')?.classList.toggle('on',all(weekday)&&none(weekend));
   document.querySelector('.copy-quick-btn[data-mode="weekend"]')?.classList.toggle('on',all(weekend)&&none(weekday));
 }
@@ -995,14 +1053,21 @@ function selChip(el){selNotifMin=Number(el.dataset.min);updateChips();}
 function updateChips(){document.querySelectorAll('#notifChips .chip').forEach(c=>c.classList.toggle('on',Number(c.dataset.min)===selNotifMin));}
 function saveBlock(){
   const catId=document.getElementById('b-cat').value;
-  const start=document.getElementById('b-start').value;
-  const end=document.getElementById('b-end').value;
+  const start=document.getElementById('b-start').dataset.value;
+  const end=document.getElementById('b-end').dataset.value;
   if(!start||!end){showToast('開始・終了を入力してください');return;}
   if(start>=end){showToast('終了は開始より後にしてください');return;}
-  const data={catId,start,end,notifMin:selNotifMin,notifEnabled:true,dayIndex:activeDayIndex};
+  const data={catId,start,end,notifMin:selNotifMin,notifEnabled:true};
   if(editingBlock){Object.assign(editingBlock,data);}
-  else{blocks.push({...data,id:'b'+Date.now()});}
-  copySet.forEach(di=>{blocks.push({...data,id:'b'+Date.now()+'_'+di,dayIndex:di});});
+  else if(copyFreeMode){
+    // 自由選択モード：選択された曜日すべてに追加（基準曜日なし）
+    const days=[...copySet];
+    if(days.length===0){showToast('曜日を選択してください');return;}
+    days.forEach(di=>blocks.push({...data,id:'b'+Date.now()+'_'+di,dayIndex:di}));
+  } else {
+    blocks.push({...data,id:'b'+Date.now(),dayIndex:activeDayIndex});
+    copySet.forEach(di=>{blocks.push({...data,id:'b'+Date.now()+'_'+di,dayIndex:di});});
+  }
   Store.saveB(blocks);closeModal('blockModal');renderBlocksForDay(activeDayIndex);
   if(currentView==='week') renderWeekBlocks();
   showToast(editingBlock?'更新しました':'追加しました');editingBlock=null;
@@ -1085,7 +1150,6 @@ function renderNotifSettings(){
     <div class="list-row" style="cursor:default">
       <div style="flex:1">
         <div class="list-row-label">すべての通知</div>
-        <div class="list-row-sub">イレギュラーな日は一括でオフ</div>
       </div>
       <button class="toggle-sw${masterNotif?' on':''}" id="masterToggle" onclick="toggleMaster()"></button>
     </div>`;
