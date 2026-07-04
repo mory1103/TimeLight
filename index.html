@@ -1,0 +1,1108 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>routine.</title>
+<style>
+:root {
+  --bg:#f5f4f1;--surface:#fff;--surface2:#f0eeeb;
+  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
+  --ink:#1c1c1e;--ink2:#6b6b70;--ink3:#aeaeb2;
+  --accent:#3a5f82;--accent-l:#e6eef5;
+  --nav-h:60px;--top-h:52px;--tab-h:40px;--r:12px;--r-sm:8px;--ad-h:52px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);color:var(--ink);font-size:15px;line-height:1.5;display:flex;flex-direction:column}
+
+/* SCREENS */
+.screen{
+  display:none;flex-direction:column;flex:1;overflow:hidden;
+  position:absolute;inset:0;
+  will-change:transform,opacity;
+}
+.screen.active{display:flex}
+
+/* AD AREA */
+.ad-area{
+  height:var(--ad-h);display:flex;align-items:center;justify-content:center;
+  gap:8px;background:var(--surface);border-top:1px solid var(--border);
+  flex:none;position:relative;
+}
+.ad-label{
+  position:absolute;top:4px;left:6px;
+  font-size:9px;color:var(--ink3);letter-spacing:.04em;
+  background:var(--surface2);padding:1px 5px;border-radius:3px;
+}
+.ad-placeholder{
+  font-size:11px;color:var(--ink3);
+  border:1px dashed var(--border2);border-radius:6px;
+  padding:6px 40px;letter-spacing:.04em;
+}
+
+/* タブ切り替え — フェード */
+@keyframes scr-fade-in{from{opacity:0}to{opacity:1}}
+.screen.anim-fade{animation:scr-fade-in .18s ease both}
+
+/* Push 遷移（設定 → サブ画面）— 右から入る */
+@keyframes scr-push-in{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes scr-push-out{from{transform:translateX(0);opacity:1}to{transform:translateX(-28%);opacity:.6}}
+.screen.anim-push-in{animation:scr-push-in .28s cubic-bezier(.32,.72,0,1) both}
+.screen.anim-push-out{animation:scr-push-out .28s cubic-bezier(.32,.72,0,1) both}
+
+/* Pop 遷移（戻る）— 右へ去る */
+@keyframes scr-pop-out{from{transform:translateX(0)}to{transform:translateX(100%)}}
+@keyframes scr-pop-in{from{transform:translateX(-28%);opacity:.6}to{transform:translateX(0);opacity:1}}
+.screen.anim-pop-out{animation:scr-pop-out .28s cubic-bezier(.32,.72,0,1) both}
+.screen.anim-pop-in{animation:scr-pop-in .28s cubic-bezier(.32,.72,0,1) both}
+
+/* reduced-motion 対応 */
+@media(prefers-reduced-motion:reduce){
+  .screen.anim-fade,.screen.anim-push-in,.screen.anim-push-out,
+  .screen.anim-pop-out,.screen.anim-pop-in{animation:none}
+}
+
+/* TOPBAR */
+.topbar{height:var(--top-h);display:flex;align-items:center;padding:0 16px;gap:10px;background:var(--surface);border-bottom:1px solid var(--border);flex:none;padding-top:env(safe-area-inset-top)}
+.topbar-logo{font-size:17px;font-weight:700;letter-spacing:.02em;color:var(--ink)}
+.topbar-logo span{color:var(--accent)}
+.topbar-right{margin-left:auto;display:flex;gap:6px}
+.icon-btn{width:36px;height:36px;border-radius:999px;border:none;background:var(--surface2);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--ink2);font-size:18px}
+.icon-btn:active{opacity:.7}
+.back-btn{background:none;border:none;color:var(--accent);font:inherit;font-size:15px;cursor:pointer;padding:0;display:flex;align-items:center;gap:4px}
+
+/* DAY TABS */
+.day-tabs{height:var(--tab-h);display:flex;background:var(--surface);border-bottom:1px solid var(--border);flex:none;overflow:hidden}
+.day-tab{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:11px;color:var(--ink3);cursor:pointer;gap:1px;border:none;background:none;padding:0;transition:color .15s;position:relative}
+.day-tab .d-name{font-weight:500;font-size:12px}
+.day-tab.active{color:var(--accent)}
+.day-tab.active::after{content:'';position:absolute;bottom:0;left:12%;right:12%;height:2px;background:var(--accent);border-radius:2px 2px 0 0}
+
+/* SEGMENT CONTROL */
+.seg-wrap{display:flex;align-items:center;background:var(--surface2);border-radius:8px;padding:2px;gap:1px}
+.seg-btn{padding:5px 12px;border-radius:6px;border:none;background:none;font:inherit;font-size:12px;font-weight:500;color:var(--ink3);cursor:pointer;transition:background .15s,color .15s;white-space:nowrap}
+.seg-btn.active{background:var(--surface);color:var(--ink);box-shadow:0 0 0 0.5px var(--border2)}
+
+/* WEEK GRID */
+.week-wrap{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:var(--bg)}
+.week-inner{display:grid;grid-template-columns:40px repeat(7,1fr);min-width:380px;min-height:100%}
+.wk-corner{position:sticky;top:0;left:0;z-index:6;background:var(--surface);border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.wk-day-hd{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--border);border-right:1px solid var(--border);padding:6px 2px;text-align:center;font-size:10px;font-weight:500;color:var(--ink2)}
+.wk-day-hd.today{color:var(--accent);background:var(--accent-l)}
+.wk-time-col{position:sticky;left:0;z-index:4;background:var(--surface);border-right:1px solid var(--border)}
+.wk-time-lbl{height:54px;display:flex;align-items:flex-start;padding:3px 4px 0;font-size:9px;color:var(--ink3);border-bottom:1px solid var(--border)}
+.wk-day-col{position:relative;border-right:1px solid var(--border)}
+.wk-hour-cell{height:54px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.wk-hour-cell:active{background:rgba(58,95,130,.05)}
+.wk-half{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--border);top:27px;pointer-events:none}
+.wk-block{position:absolute;left:2px;right:2px;border-radius:5px;padding:2px 4px;font-size:9px;font-weight:600;overflow:hidden;cursor:pointer;z-index:2;transition:filter .1s;line-height:1.3}
+.wk-block:active{filter:brightness(.9)}
+.wk-block-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wk-block-time{opacity:.7;font-size:8px;font-weight:400}
+
+/* TIMELINE */
+.timeline-wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg)}
+.timeline-inner{display:flex;min-height:100%}
+.time-gutter{width:44px;flex:none}
+.time-label{height:60px;display:flex;align-items:flex-start;padding:4px 6px 0;font-size:10px;color:var(--ink3)}
+.blocks-col{flex:1;position:relative}
+.hour-row{height:60px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.hour-row:active{background:rgba(58,95,130,.05)}
+.half-mark{position:absolute;left:0;right:0;top:30px;border-top:1px dashed var(--border);pointer-events:none}
+.add-hint{position:absolute;left:50%;transform:translateX(-50%);font-size:11px;color:var(--ink3);white-space:nowrap;top:50%;margin-top:-8px;pointer-events:none}
+
+/* BLOCKS */
+.block{position:absolute;left:4px;right:4px;border-radius:8px;padding:5px 8px;cursor:pointer;overflow:hidden;transition:filter .1s;z-index:2}
+.block:active{filter:brightness(.9)}
+.block-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.block-time{font-size:10px;opacity:.75;margin-top:1px}
+
+/* SCREEN CONTAINER */
+.screens{position:relative;flex:1;overflow:hidden}
+
+/* BOTTOM NAV */
+.bottom-nav{height:var(--nav-h);display:flex;background:var(--surface);border-top:1px solid var(--border);flex:none;padding-bottom:env(safe-area-inset-bottom)}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:none;background:none;cursor:pointer;color:var(--ink3);font-size:10px;padding:0;transition:color .15s}
+.nav-item.active{color:var(--accent)}
+.nav-icon{font-size:22px;line-height:1}
+
+/* STATS */
+.scroll-view{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+.card{background:var(--surface);border-radius:var(--r);padding:16px}
+.card-title{font-size:12px;font-weight:600;color:var(--ink2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:14px}
+.pie-wrap{display:flex;justify-content:center;margin-bottom:16px}
+.cat-stat-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.cat-stat-row:last-child{border-bottom:none}
+.cat-dot{width:10px;height:10px;border-radius:50%;flex:none}
+.cat-stat-name{flex:1;font-size:14px;color:var(--ink)}
+.cat-stat-hours{font-size:13px;color:var(--ink2);flex:none}
+.cat-stat-pct{font-size:12px;color:var(--ink3);flex:none;width:36px;text-align:right}
+
+/* SETTINGS LIST */
+.sec-label{font-size:12px;color:var(--ink3);font-weight:500;padding:0 4px;margin-top:4px}
+.list-card{background:var(--surface);border-radius:var(--r);overflow:hidden}
+.list-row{display:flex;align-items:center;padding:14px 16px;gap:12px;border-bottom:1px solid var(--border);cursor:pointer}
+.list-row:last-child{border-bottom:none}
+.list-row:active{background:var(--surface2)}
+.list-row-label{flex:1;font-size:15px;color:var(--ink)}
+.list-row-sub{font-size:12px;color:var(--ink3);margin-top:1px}
+.chevron{color:var(--ink3);font-size:13px;flex:none}
+
+/* TOGGLE */
+.toggle-sw{width:44px;height:26px;border-radius:999px;background:var(--border2);position:relative;cursor:pointer;transition:background .2s;border:none;flex:none;padding:0}
+.toggle-sw.on{background:var(--accent)}
+.toggle-sw::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle-sw.on::after{transform:translateX(18px)}
+
+/* NOTIF ACCORDION */
+.notif-group{background:var(--surface);border-radius:var(--r);overflow:hidden;margin-bottom:0}
+.notif-parent{display:flex;align-items:center;padding:13px 16px;gap:12px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
+.notif-parent:active{background:var(--surface2)}
+.notif-parent-left{display:flex;align-items:center;gap:10px;flex:1;min-width:0}
+.notif-parent-dot{width:10px;height:10px;border-radius:50%;flex:none}
+.notif-parent-name{font-size:15px;font-weight:500;color:var(--ink)}
+.notif-children{display:none;border-bottom:1px solid var(--border)}
+.notif-children.open{display:block}
+.notif-child{display:flex;align-items:center;padding:11px 16px 11px 36px;gap:12px;border-bottom:1px solid var(--border)}
+.notif-child:last-child{border-bottom:none}
+.notif-child-name{flex:1;font-size:14px;color:var(--ink)}
+.notif-child-meta{font-size:11px;color:var(--ink3);flex:none}
+.notif-expand{color:var(--ink3);font-size:12px;transition:transform .2s;flex:none;margin-right:4px}
+.notif-expand.open{transform:rotate(90deg)}
+
+/* CAT LIST */
+.cat-row{display:flex;align-items:center;padding:12px 16px;gap:12px;border-bottom:1px solid var(--border)}
+.cat-row:last-child{border-bottom:none}
+.cat-swatch{width:18px;height:18px;border-radius:5px;flex:none}
+.cat-row-name{flex:1;font-size:15px;color:var(--ink)}
+.cat-row-btn{font-size:13px;color:var(--accent);border:none;background:none;cursor:pointer;padding:4px 8px}
+.cat-row-del{color:var(--ink3)}
+
+/* MODAL */
+@keyframes modal-bg-in{from{opacity:0}to{opacity:1}}
+@keyframes modal-bg-out{from{opacity:1}to{opacity:0}}
+@keyframes modal-slide-in{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes modal-slide-out{from{transform:translateY(0)}to{transform:translateY(100%)}}
+
+.modal-bg{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;
+  align-items:flex-end;justify-content:center;
+}
+.modal-bg.open{display:flex;animation:modal-bg-in .22s ease both}
+.modal-bg.closing{animation:modal-bg-out .22s ease both}
+.modal-bg.open .modal{animation:modal-slide-in .28s cubic-bezier(.32,.72,0,1) both}
+.modal-bg.closing .modal{animation:modal-slide-out .22s cubic-bezier(.32,.72,0,1) both}
+.modal{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:0 0 env(safe-area-inset-bottom);max-height:92vh;overflow-y:auto}
+.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:10px auto 0}
+.modal-header{display:flex;align-items:center;padding:14px 16px 12px;border-bottom:1px solid var(--border)}
+.modal-title{font-size:16px;font-weight:600;color:var(--ink);flex:1}
+.modal-close{width:28px;height:28px;border-radius:999px;border:none;background:var(--surface2);color:var(--ink2);font-size:16px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.modal-body{padding:16px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--ink3);font-weight:500;margin-bottom:5px}
+.field input,.field select{width:100%;padding:11px 12px;border:1px solid var(--border2);border-radius:var(--r-sm);font:inherit;font-size:15px;color:var(--ink);background:var(--surface);-webkit-appearance:none;outline:none}
+.field input:focus,.field select:focus{border-color:var(--accent)}
+.field-row{display:flex;gap:10px}
+.field-row .field{flex:1}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+.chip{padding:6px 12px;border-radius:999px;border:1px solid var(--border2);font:inherit;font-size:13px;color:var(--ink2);background:var(--surface2);cursor:pointer}
+.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.copy-days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px}
+.copy-day{padding:8px 0;text-align:center;border-radius:var(--r-sm);border:1px solid var(--border2);font-size:12px;font-weight:500;cursor:pointer;background:var(--surface2);color:var(--ink2)}
+.copy-day.src{background:var(--ink);color:#fff;border-color:var(--ink);cursor:default}
+.copy-day.on{background:var(--accent);color:#fff;border-color:var(--accent)}
+.modal-footer{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border)}
+.btn{flex:1;padding:13px;border-radius:var(--r-sm);border:1px solid var(--border2);font:inherit;font-size:15px;font-weight:500;cursor:pointer;background:var(--surface2);color:var(--ink2)}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-danger{color:#c0392b;border-color:rgba(192,57,43,.25);background:none}
+.btn:active{opacity:.8}
+.cat-select-wrap{display:flex;gap:8px;align-items:center}
+.cat-select-wrap select{flex:1}
+.cat-add-inline{flex:none;width:36px;height:36px;border-radius:var(--r-sm);border:1px dashed var(--border2);background:none;font-size:20px;color:var(--ink3);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.palette{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.pal-sw{width:28px;height:28px;border-radius:6px;cursor:pointer;border:2px solid transparent;transition:border-color .1s}
+.pal-sw.on{border-color:var(--ink)}
+
+/* TOAST */
+.toast{position:fixed;bottom:calc(var(--nav-h) + 12px);left:50%;transform:translateX(-50%) translateY(16px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s,transform .2s;z-index:300;white-space:nowrap;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* EMPTY */
+.empty-msg{padding:16px;font-size:13px;color:var(--ink3);text-align:center}
+
+/* PC */
+@media(min-width:640px){
+  body{flex-direction:row}
+  .screens{position:relative;flex:1}
+  .screen{bottom:0}
+  .ad-area{border-top:none;border-left:1px solid var(--border);width:100%}
+  .bottom-nav{flex-direction:column;height:auto;width:64px;border-top:none;border-right:1px solid var(--border);order:-1}
+  .nav-item{padding:14px 0}
+  .modal-bg{align-items:center}
+  .modal{border-radius:var(--r);max-width:380px;max-height:80vh}
+  .modal-handle{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="screens">
+
+<!-- ===== HOME: タイムライン ===== -->
+<div class="screen active" id="scr-home">
+  <div class="topbar">
+    <span class="topbar-logo">routine<span>.</span></span>
+    <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
+      <div class="seg-wrap">
+        <button class="seg-btn active" id="seg-day" onclick="switchView('day')">1日</button>
+        <button class="seg-btn" id="seg-week" onclick="switchView('week')">週</button>
+      </div>
+      <button class="icon-btn" onclick="openAddBlock()" title="追加">＋</button>
+    </div>
+  </div>
+
+  <!-- 1日ビュー -->
+  <div id="view-day" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div class="day-tabs" id="dayTabs"></div>
+    <div class="timeline-wrap" id="timelineWrap">
+      <div class="timeline-inner">
+        <div class="time-gutter" id="timeGutter"></div>
+        <div class="blocks-col" id="blocksCol">
+          <div class="add-hint" id="addHint">タップしてブロックを追加</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 週グリッドビュー -->
+  <div id="view-week" style="display:none;flex:1;overflow:hidden;flex-direction:column">
+    <div class="week-wrap" id="weekWrap">
+      <div class="week-inner" id="weekInner"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== STATS ===== -->
+<div class="screen" id="scr-stats">
+  <div class="topbar"><span class="topbar-logo">週のコミット</span></div>
+  <div class="scroll-view">
+    <div class="card">
+      <div class="card-title">カテゴリ別の割合</div>
+      <div class="pie-wrap"><canvas id="pieCanvas" width="180" height="180"></canvas></div>
+      <div id="catStatList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SETTINGS TOP ===== -->
+<div class="screen" id="scr-settings">
+  <div class="topbar"><span class="topbar-logo">設定</span></div>
+  <div class="scroll-view">
+    <div class="list-card">
+      <div class="list-row" onclick="goTo('scr-notif')">
+        <div class="list-row-label">通知設定</div>
+        <span class="chevron">›</span>
+      </div>
+      <div class="list-row" onclick="goTo('scr-cats')">
+        <div class="list-row-label">カテゴリ</div>
+        <span class="chevron">›</span>
+      </div>
+    </div>
+
+    <div class="list-card" style="margin-top:12px">
+      <div class="list-row" onclick="openExternalLink('feedback')">
+        <div>
+          <div class="list-row-label">バグ報告・要望</div>
+          <div class="list-row-sub">気になった点を教えてください</div>
+        </div>
+        <span class="chevron" style="font-size:11px;opacity:.5">↗</span>
+      </div>
+      <div class="list-row" onclick="openExternalLink('donate')">
+        <div>
+          <div class="list-row-label">寄附で応援する</div>
+          <div class="list-row-sub">開発の継続を支援いただけると嬉しいです</div>
+        </div>
+        <span class="chevron" style="font-size:11px;opacity:.5">↗</span>
+      </div>
+    </div>
+    <p style="text-align:center;font-size:11px;color:var(--ink3);padding:24px 0 8px;">&copy; <span id="cr-year"></span> TimeLight. All rights reserved.</p>
+  </div>
+</div>
+
+<!-- ===== NOTIF SETTINGS ===== -->
+<div class="screen" id="scr-notif">
+  <div class="topbar">
+    <button class="back-btn" onclick="goBack()">‹ 設定</button>
+    <span class="topbar-logo" style="font-size:15px;font-weight:600">通知設定</span>
+  </div>
+  <div class="scroll-view" id="notifScroll">
+    <!-- JS で生成 -->
+  </div>
+</div>
+
+<!-- ===== CAT SETTINGS ===== -->
+<div class="screen" id="scr-cats">
+  <div class="topbar">
+    <button class="back-btn" onclick="goBack()">‹ 設定</button>
+    <span class="topbar-logo" style="font-size:15px;font-weight:600">カテゴリ</span>
+    <div class="topbar-right">
+      <button class="icon-btn" onclick="openCatModal()" title="追加">＋</button>
+    </div>
+  </div>
+  <div class="scroll-view">
+    <div class="list-card" id="catListEl"></div>
+  </div>
+</div>
+
+</div><!-- /screens -->
+
+<!-- ===== AD AREA ===== -->
+<div class="ad-area" id="adArea">
+  <span class="ad-label">AD</span>
+  <span class="ad-placeholder">広告エリア（320×50）</span>
+</div>
+
+<!-- ===== BOTTOM NAV ===== -->
+<div class="bottom-nav">
+  <button class="nav-item active" onclick="switchTab('home',this)">
+    <span class="nav-icon">📅</span><span>スケジュール</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('stats',this)">
+    <span class="nav-icon">◉</span><span>コミット</span>
+  </button>
+  <button class="nav-item" onclick="switchTab('settings',this)">
+    <span class="nav-icon">⚙︎</span><span>設定</span>
+  </button>
+</div>
+
+<!-- ===== MODAL: ブロック ===== -->
+<div class="modal-bg" id="blockModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title" id="blockModalTitle">ブロックを追加</span>
+      <button class="modal-close" onclick="closeModal('blockModal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>カテゴリ</label>
+        <div class="cat-select-wrap">
+          <select id="b-cat"></select>
+          <button class="cat-add-inline" onclick="openCatModal(true)" title="カテゴリを追加">＋</button>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>開始</label><input type="time" id="b-start"></div>
+        <div class="field"><label>終了</label><input type="time" id="b-end"></div>
+      </div>
+      <div class="field">
+        <label>通知</label>
+        <div class="chips" id="notifChips">
+          <button class="chip" data-min="0" onclick="selChip(this)">なし</button>
+          <button class="chip" data-min="5" onclick="selChip(this)">5分前</button>
+          <button class="chip on" data-min="10" onclick="selChip(this)">10分前</button>
+          <button class="chip" data-min="15" onclick="selChip(this)">15分前</button>
+          <button class="chip" data-min="30" onclick="selChip(this)">30分前</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>他の曜日にも複製</label>
+        <div class="copy-days" id="copyDays"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="btnDel" style="display:none" onclick="deleteBlock()">削除</button>
+      <button class="btn" onclick="closeModal('blockModal')">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveBlock()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: カテゴリ ===== -->
+<div class="modal-bg" id="catModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title" id="catModalTitle">カテゴリを追加</span>
+      <button class="modal-close" onclick="closeCatModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field">
+        <label>カテゴリ名</label>
+        <input type="text" id="c-name" placeholder="例）勉強、趣味…">
+      </div>
+      <div class="field">
+        <label>カラー</label>
+        <div class="palette" id="palette"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeCatModal()">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveCat()">保存</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   EXTERNAL LINKS — URLが決まったらここを書き換えるだけ
+   ============================================================ */
+const EXTERNAL_LINKS={
+  feedback: '',   // 例）'https://forms.gle/xxxx' や 'mailto:your@email.com'
+  donate:   '',   // 例）'https://ko-fi.com/yourname'
+};
+
+function openExternalLink(key){
+  const url=EXTERNAL_LINKS[key];
+  if(!url){ showToast('リンクは準備中です'); return; }
+  window.open(url,'_blank','noopener,noreferrer');
+}
+
+/* ============================================================
+   STORE
+   ============================================================ */
+const Store={
+  B:'routine.blocks.v2',C:'routine.cats.v2',N:'routine.notif.v1',
+  blocks(){try{return JSON.parse(localStorage.getItem(this.B))||[];}catch{return[];}},
+  cats(){try{return JSON.parse(localStorage.getItem(this.C))||null;}catch{return null;}},
+  notif(){try{return JSON.parse(localStorage.getItem(this.N))??true;}catch{return true;}},
+  saveB(d){try{localStorage.setItem(this.B,JSON.stringify(d));}catch{}},
+  saveC(d){try{localStorage.setItem(this.C,JSON.stringify(d));}catch{}},
+  saveN(v){try{localStorage.setItem(this.N,JSON.stringify(v));}catch{}},
+};
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const PAL=['#3a5f82','#6c63d4','#d4537e','#e8543a','#e67e22',
+           '#f1c40f','#2ecc71','#1abc9c','#3d9e7a','#e84393',
+           '#8e44ad','#c0392b','#6b7b8d','#34495e','#e84040','#3498db'];
+const DAYS=['月','火','水','木','金','土','日'];
+const START_H=5,END_H=24,HOUR_H=60,WK_HOUR_H=54;
+
+let blocks=Store.blocks();
+let cats=Store.cats()||defCats();
+let masterNotif=Store.notif();
+let currentView='day'; // 'day' | 'week'
+let activeDayIndex=(()=>{const d=new Date().getDay();return d===0?6:d-1;})();
+let editingBlock=null,editingCat=null,selNotifMin=10,selColor=PAL[0];
+let copySet=new Set(),catFromBlock=false;
+
+/* 現在の設定タブ画面（settings系をナビで管理） */
+let activeTab='home'; // home / stats / settings
+let settingStack=[]; // 設定の階層
+
+function defCats(){
+  return[
+    {id:'c1',name:'仕事',color:'#3a5f82'},
+    {id:'c2',name:'睡眠',color:'#6c63d4'},
+    {id:'c3',name:'食事',color:'#2ecc71'},
+    {id:'c4',name:'運動',color:'#e67e22'},
+    {id:'c5',name:'自由',color:'#d4537e'},
+  ];
+}
+
+/* ============================================================
+   NAVIGATION — アニメーション付き
+   ============================================================ */
+const TAB_SCREENS={home:'scr-home',stats:'scr-stats',settings:'scr-settings'};
+// タブの並び順（横スライド方向を決めるため）
+const TAB_ORDER=['home','stats','settings'];
+
+function switchTab(tab,btn){
+  const prev=activeTab;
+  activeTab=tab;
+  settingStack=[];
+
+  const fromEl=document.querySelector('.screen.active');
+  const toEl=document.getElementById(TAB_SCREENS[tab]);
+  if(fromEl===toEl){return;}
+
+  const prevIdx=TAB_ORDER.indexOf(prev);
+  const nextIdx=TAB_ORDER.indexOf(tab);
+
+  // フェードで切り替え（シンプルかつ確実）
+  _animate(fromEl, toEl, 'fade');
+
+  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  if(tab==='stats') renderStats();
+}
+
+function goTo(screenId){
+  // 設定内 push 遷移
+  const fromEl=document.querySelector('.screen.active');
+  const toEl=document.getElementById(screenId);
+  settingStack.push(fromEl?.id);
+  _animate(fromEl, toEl, 'push');
+  if(screenId==='scr-notif') renderNotifSettings();
+  if(screenId==='scr-cats')  renderCatSettings();
+}
+
+function goBack(){
+  const prevId=settingStack.pop();
+  if(!prevId) return;
+  const fromEl=document.querySelector('.screen.active');
+  const toEl=document.getElementById(prevId);
+  _animate(fromEl, toEl, 'pop');
+}
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ============================================================
+   VIEW SWITCH — 1日 / 週
+   ============================================================ */
+function switchView(v){
+  currentView=v;
+  document.getElementById('view-day').style.display  = v==='day'  ? 'flex' : 'none';
+  document.getElementById('view-week').style.display = v==='week' ? 'flex' : 'none';
+  document.getElementById('seg-day').classList.toggle('active',  v==='day');
+  document.getElementById('seg-week').classList.toggle('active', v==='week');
+  if(v==='week') buildWeekGrid();
+}
+
+/* ============================================================
+   WEEK GRID
+   ============================================================ */
+function buildWeekGrid(){
+  const inner=document.getElementById('weekInner');
+  inner.innerHTML='';
+
+  const todayDow=(()=>{const d=new Date().getDay();return d===0?6:d-1;})();
+
+  // コーナー
+  inner.appendChild(mk('div','wk-corner'));
+
+  // 曜日ヘッダー
+  DAYS.forEach((d,i)=>{
+    const hd=mk('div','wk-day-hd'+(i===todayDow?' today':''));
+    hd.textContent=d;
+    inner.appendChild(hd);
+  });
+
+  // 時間ラベル列 + 各曜日列
+  const timeCol=mk('div','wk-time-col');
+  const dayCols=DAYS.map((_,i)=>{
+    const col=mk('div','wk-day-col');
+    col.dataset.dayIndex=i;
+    return col;
+  });
+
+  for(let h=START_H;h<END_H;h++){
+    const lbl=mk('div','wk-time-lbl');
+    lbl.textContent=h+':00';
+    timeCol.appendChild(lbl);
+
+    dayCols.forEach((col,di)=>{
+      const cell=mk('div','wk-hour-cell');
+      cell.dataset.hour=h;
+      const half=mk('div','wk-half');
+      cell.appendChild(half);
+      cell.addEventListener('click',e=>{
+        if(e.target.classList.contains('wk-block')||e.target.closest('.wk-block')) return;
+        activeDayIndex=di;
+        switchView('day');
+        // 1日ビューに切り替えてから該当曜日タブをアクティブ化
+        setTimeout(()=>{
+          document.querySelectorAll('.day-tab').forEach((b,j)=>b.classList.toggle('active',j===di));
+          renderBlocksForDay(di);
+          openAddBlock(h);
+        },50);
+      });
+      col.appendChild(cell);
+    });
+  }
+
+  inner.appendChild(timeCol);
+  dayCols.forEach(col=>inner.appendChild(col));
+
+  // ブロックを描画
+  renderWeekBlocks();
+}
+
+function renderWeekBlocks(){
+  // 既存ブロック要素を削除
+  document.querySelectorAll('.wk-block').forEach(e=>e.remove());
+  const dayCols=document.querySelectorAll('.wk-day-col');
+
+  blocks.forEach(b=>{
+    const col=dayCols[b.dayIndex];
+    if(!col) return;
+    const cat=cats.find(c=>c.id===b.catId)||cats[0];
+    const top=wkTimeToY(b.start);
+    const h=wkTimeToY(b.end)-top;
+    if(h<=2) return;
+
+    const div=mk('div','wk-block');
+    div.style.cssText=`top:${top}px;height:${Math.max(h,14)}px;background:${cat.color};color:${fgColor(cat.color)}`;
+
+    const nm=mk('div','wk-block-name');
+    nm.textContent=cat.name;
+    div.appendChild(nm);
+
+    if(h>=28){
+      const tm=mk('div','wk-block-time');
+      tm.textContent=b.start+'〜'+b.end;
+      div.appendChild(tm);
+    }
+
+    // タップで1日ビューの該当曜日・ブロック編集に飛ぶ
+    div.addEventListener('click',e=>{
+      e.stopPropagation();
+      activeDayIndex=b.dayIndex;
+      switchView('day');
+      setTimeout(()=>{
+        document.querySelectorAll('.day-tab').forEach((btn,j)=>btn.classList.toggle('active',j===b.dayIndex));
+        renderBlocksForDay(b.dayIndex);
+        openEditBlock(b);
+      },50);
+    });
+
+    col.appendChild(div);
+  });
+}
+
+function wkTimeToY(t){
+  const[h,m]=t.split(':').map(Number);
+  return((h+m/60)-START_H)*WK_HOUR_H;
+}
+
+function mk(tag,cls){
+  const e=document.createElement(tag);
+  if(cls)e.className=cls;
+  return e;
+}
+
+// アニメーション本体
+function _animate(fromEl, toEl, type){
+  if(!fromEl||!toEl||fromEl===toEl) return;
+
+  // クラスをリセット
+  const clean=(el)=>{
+    el.classList.remove(
+      'anim-fade','anim-push-in','anim-push-out','anim-pop-in','anim-pop-out'
+    );
+  };
+  clean(fromEl); clean(toEl);
+
+  // to を表示状態に
+  fromEl.classList.add('active');
+  toEl.classList.add('active');
+
+  if(type==='fade'){
+    toEl.classList.add('anim-fade');
+  } else if(type==='push'){
+    fromEl.classList.add('anim-push-out');
+    toEl.classList.add('anim-push-in');
+  } else if(type==='pop'){
+    fromEl.classList.add('anim-pop-out');
+    toEl.classList.add('anim-pop-in');
+  }
+
+  // アニメーション終了後に from を非表示
+  const dur = type==='fade' ? 200 : 300;
+  setTimeout(()=>{
+    fromEl.classList.remove('active');
+    clean(fromEl); clean(toEl);
+  }, dur);
+}
+
+/* ============================================================
+   TIMELINE
+   ============================================================ */
+function buildTimeline(){
+  const gutter=document.getElementById('timeGutter');
+  const col=document.getElementById('blocksCol');
+  gutter.innerHTML='';
+  col.querySelectorAll('.block,.hour-row').forEach(e=>e.remove());
+  for(let h=START_H;h<END_H;h++){
+    const lbl=document.createElement('div');
+    lbl.className='time-label';lbl.textContent=h+':00';
+    gutter.appendChild(lbl);
+    const row=document.createElement('div');
+    row.className='hour-row';row.dataset.hour=h;
+    const half=document.createElement('div');half.className='half-mark';
+    row.appendChild(half);
+    row.addEventListener('click',()=>openAddBlock(h));
+    col.appendChild(row);
+  }
+  renderBlocksForDay(activeDayIndex);
+}
+
+function renderBlocksForDay(di){
+  const col=document.getElementById('blocksCol');
+  col.querySelectorAll('.block').forEach(e=>e.remove());
+  const hint=document.getElementById('addHint');
+  const dayBlocks=blocks.filter(b=>b.dayIndex===di);
+  hint.style.display=dayBlocks.length?'none':'';
+  dayBlocks.forEach(b=>{
+    const cat=cats.find(c=>c.id===b.catId)||cats[0];
+    const top=timeToY(b.start),h=timeToY(b.end)-top;
+    if(h<=0) return;
+    const div=document.createElement('div');
+    div.className='block';
+    div.style.cssText=`top:${top}px;height:${Math.max(h,24)}px;background:${cat.color};color:${fgColor(cat.color)}`;
+    const nm=document.createElement('div');nm.className='block-name';nm.textContent=cat.name;
+    div.appendChild(nm);
+    if(h>=36){const tm=document.createElement('div');tm.className='block-time';tm.textContent=b.start+'〜'+b.end;div.appendChild(tm);}
+    div.addEventListener('click',e=>{e.stopPropagation();openEditBlock(b);});
+    col.appendChild(div);
+  });
+}
+
+function buildDayTabs(){
+  const wrap=document.getElementById('dayTabs');
+  wrap.innerHTML='';
+  DAYS.forEach((d,i)=>{
+    const btn=document.createElement('button');
+    btn.className='day-tab'+(i===activeDayIndex?' active':'');
+    btn.innerHTML=`<span class="d-name">${d}</span>`;
+    btn.addEventListener('click',()=>{
+      activeDayIndex=i;
+      document.querySelectorAll('.day-tab').forEach((b,j)=>b.classList.toggle('active',j===i));
+      renderBlocksForDay(i);
+    });
+    wrap.appendChild(btn);
+  });
+}
+
+function timeToY(t){const[h,m]=t.split(':').map(Number);return((h+m/60)-START_H)*HOUR_H;}
+function fgColor(hex){const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return(0.299*r+0.587*g+0.114*b)/255>0.55?'rgba(0,0,0,.8)':'rgba(255,255,255,.95)';}
+function pad(n){return String(n).padStart(2,'0');}
+
+/* ============================================================
+   BLOCK MODAL
+   ============================================================ */
+function openAddBlock(hour){
+  editingBlock=null;
+  document.getElementById('blockModalTitle').textContent='ブロックを追加';
+  document.getElementById('btnDel').style.display='none';
+  document.getElementById('b-start').value=hour!=null?pad(hour)+':00':pad(START_H)+':00';
+  document.getElementById('b-end').value=hour!=null?pad(Math.min(hour+1,END_H))+':00':pad(START_H+1)+':00';
+  selNotifMin=10;buildCatSelect();buildCopyDays();updateChips();
+  openModal('blockModal');
+}
+function openEditBlock(b){
+  editingBlock=b;
+  document.getElementById('blockModalTitle').textContent='ブロックを編集';
+  document.getElementById('btnDel').style.display='';
+  document.getElementById('b-start').value=b.start;
+  document.getElementById('b-end').value=b.end;
+  selNotifMin=b.notifMin??10;buildCatSelect(b.catId);buildCopyDays();updateChips();
+  openModal('blockModal');
+}
+function buildCatSelect(selId){
+  document.getElementById('b-cat').innerHTML=cats.map(c=>`<option value="${c.id}"${c.id===selId?' selected':''}>${c.name}</option>`).join('');
+}
+function buildCopyDays(){
+  copySet.clear();
+  const wrap=document.getElementById('copyDays');wrap.innerHTML='';
+  DAYS.forEach((d,i)=>{
+    const btn=document.createElement('button');
+    btn.className='copy-day'+(i===activeDayIndex?' src':'');
+    btn.textContent=d;
+    if(i!==activeDayIndex)btn.addEventListener('click',()=>{copySet.has(i)?copySet.delete(i):copySet.add(i);btn.classList.toggle('on',copySet.has(i));});
+    wrap.appendChild(btn);
+  });
+}
+function selChip(el){selNotifMin=Number(el.dataset.min);updateChips();}
+function updateChips(){document.querySelectorAll('#notifChips .chip').forEach(c=>c.classList.toggle('on',Number(c.dataset.min)===selNotifMin));}
+function saveBlock(){
+  const catId=document.getElementById('b-cat').value;
+  const start=document.getElementById('b-start').value;
+  const end=document.getElementById('b-end').value;
+  if(!start||!end){showToast('開始・終了を入力してください');return;}
+  if(start>=end){showToast('終了は開始より後にしてください');return;}
+  const data={catId,start,end,notifMin:selNotifMin,notifEnabled:true,dayIndex:activeDayIndex};
+  if(editingBlock){Object.assign(editingBlock,data);}
+  else{blocks.push({...data,id:'b'+Date.now()});}
+  copySet.forEach(di=>{blocks.push({...data,id:'b'+Date.now()+'_'+di,dayIndex:di});});
+  Store.saveB(blocks);closeModal('blockModal');renderBlocksForDay(activeDayIndex);
+  if(currentView==='week') renderWeekBlocks();
+  showToast(editingBlock?'更新しました':'追加しました');editingBlock=null;
+}
+function deleteBlock(){
+  if(!editingBlock||!confirm('このブロックを削除しますか？'))return;
+  blocks=blocks.filter(b=>b!==editingBlock);
+  Store.saveB(blocks);closeModal('blockModal');renderBlocksForDay(activeDayIndex);
+  if(currentView==='week') renderWeekBlocks();
+  showToast('削除しました');editingBlock=null;
+}
+
+/* ============================================================
+   CAT MODAL
+   ============================================================ */
+function openCatModal(fromBlock=false){
+  catFromBlock=fromBlock===true;editingCat=null;selColor=PAL[0];
+  document.getElementById('catModalTitle').textContent='カテゴリを追加';
+  document.getElementById('c-name').value='';buildPalette();
+  openModal('catModal');setTimeout(()=>document.getElementById('c-name').focus(),300);
+}
+function openEditCat(cat){
+  catFromBlock=false;editingCat=cat;selColor=cat.color;
+  document.getElementById('catModalTitle').textContent='カテゴリを編集';
+  document.getElementById('c-name').value=cat.name;buildPalette();
+  openModal('catModal');
+}
+function buildPalette(){
+  const wrap=document.getElementById('palette');wrap.innerHTML='';
+  PAL.forEach(c=>{
+    const sw=document.createElement('button');
+    sw.className='pal-sw'+(c===selColor?' on':'');sw.style.background=c;
+    sw.addEventListener('click',()=>{selColor=c;wrap.querySelectorAll('.pal-sw').forEach(s=>s.classList.toggle('on',s===sw));});
+    wrap.appendChild(sw);
+  });
+}
+function saveCat(){
+  const name=document.getElementById('c-name').value.trim();
+  if(!name){showToast('名前を入力してください');return;}
+  if(editingCat){editingCat.name=name;editingCat.color=selColor;}
+  else{cats.push({id:'c'+Date.now(),name,color:selColor});}
+  Store.saveC(cats);closeCatModal();
+  renderCatSettings();renderBlocksForDay(activeDayIndex);
+  if(catFromBlock){buildCatSelect(cats[cats.length-1]?.id);openModal('blockModal');}
+  showToast(editingCat?'カテゴリを更新しました':'カテゴリを追加しました');
+}
+function closeCatModal(){closeModal('catModal');editingCat=null;}
+function deleteCat(cat){
+  if(blocks.some(b=>b.catId===cat.id)){showToast('使用中のカテゴリは削除できません');return;}
+  if(!confirm(cat.name+'を削除しますか？'))return;
+  cats=cats.filter(c=>c!==cat);Store.saveC(cats);
+  renderCatSettings();renderBlocksForDay(activeDayIndex);showToast('削除しました');
+}
+
+/* ============================================================
+   NOTIF SETTINGS — 親子アコーディオン
+   ============================================================ */
+function renderNotifSettings(){
+  const wrap=document.getElementById('notifScroll');
+  wrap.innerHTML='';
+
+  // マスタースイッチ
+  const masterCard=document.createElement('div');
+  masterCard.className='list-card';
+  masterCard.innerHTML=`
+    <div class="list-row" style="cursor:default">
+      <div style="flex:1">
+        <div class="list-row-label">すべての通知</div>
+        <div class="list-row-sub">イレギュラーな日は一括でオフ</div>
+      </div>
+      <button class="toggle-sw${masterNotif?' on':''}" id="masterToggle" onclick="toggleMaster()"></button>
+    </div>`;
+  wrap.appendChild(masterCard);
+
+  // カテゴリごとにグループ化（通知設定があるブロックのみ）
+  const notifBlocks=blocks.filter(b=>b.notifMin>0);
+
+  if(notifBlocks.length===0){
+    const empty=document.createElement('div');
+    empty.className='list-card';
+    empty.innerHTML='<div class="empty-msg">通知設定のあるブロックがありません</div>';
+    wrap.appendChild(empty);
+    return;
+  }
+
+  // カテゴリ別にグループ
+  const grouped={};
+  notifBlocks.forEach(b=>{
+    if(!grouped[b.catId])grouped[b.catId]=[];
+    grouped[b.catId].push(b);
+  });
+
+  const groupCard=document.createElement('div');
+  groupCard.className='list-card';
+
+  Object.entries(grouped).forEach(([catId,grpBlocks],gi)=>{
+    const cat=cats.find(c=>c.id===catId)||{name:'不明',color:'#888'};
+
+    // 親行
+    const parentEl=document.createElement('div');
+    parentEl.className='notif-parent'+(gi>0?'':' ');
+    if(gi>0) parentEl.style.borderTop='1px solid var(--border)';
+
+    // 全子がオンかどうか
+    const allOn=grpBlocks.every(b=>b.notifEnabled!==false)&&masterNotif;
+
+    parentEl.innerHTML=`
+      <span class="notif-expand" id="exp-${catId}">›</span>
+      <div class="notif-parent-left">
+        <span class="notif-parent-dot" style="background:${cat.color}"></span>
+        <span class="notif-parent-name">${cat.name}</span>
+      </div>
+      <button class="toggle-sw${allOn?' on':''}" id="ptog-${catId}" onclick="toggleParentNotif('${catId}',this);event.stopPropagation()"></button>`;
+
+    // 子コンテナ
+    const childWrap=document.createElement('div');
+    childWrap.className='notif-children';
+    childWrap.id='ch-'+catId;
+
+    grpBlocks.sort((a,b)=>a.dayIndex-b.dayIndex).forEach(b=>{
+      const on=b.notifEnabled!==false&&masterNotif;
+      const row=document.createElement('div');
+      row.className='notif-child';
+      row.innerHTML=`
+        <span class="notif-child-name">${DAYS[b.dayIndex]}曜日 ${b.start}</span>
+        <span class="notif-child-meta">${b.notifMin}分前</span>
+        <button class="toggle-sw${on?' on':''}" onclick="toggleChildNotif('${b.id}','${catId}',this)"></button>`;
+      childWrap.appendChild(row);
+    });
+
+    // アコーディオン開閉
+    parentEl.addEventListener('click',()=>{
+      const isOpen=childWrap.classList.toggle('open');
+      document.getElementById('exp-'+catId).classList.toggle('open',isOpen);
+    });
+
+    groupCard.appendChild(parentEl);
+    groupCard.appendChild(childWrap);
+  });
+
+  wrap.appendChild(groupCard);
+}
+
+function toggleMaster(){
+  masterNotif=!masterNotif;Store.saveN(masterNotif);renderNotifSettings();
+}
+
+function toggleParentNotif(catId,btn){
+  // 親をオフ → その catId の子を全部オフ
+  // 親をオン  → その catId の子を全部オン
+  const nowOn=btn.classList.contains('on');
+  const newVal=!nowOn;
+  blocks.filter(b=>b.catId===catId&&b.notifMin>0).forEach(b=>b.notifEnabled=newVal);
+  Store.saveB(blocks);renderNotifSettings();
+}
+
+function toggleChildNotif(blockId,catId,btn){
+  const b=blocks.find(x=>x.id===blockId);if(!b)return;
+  b.notifEnabled=b.notifEnabled===false;
+  Store.saveB(blocks);
+  // 子トグルだけ更新、親は変えない
+  btn.classList.toggle('on',b.notifEnabled&&masterNotif);
+  // 親トグルの見た目を再評価
+  const grp=blocks.filter(x=>x.catId===catId&&x.notifMin>0);
+  const allOn=grp.every(x=>x.notifEnabled!==false)&&masterNotif;
+  const ptog=document.getElementById('ptog-'+catId);
+  if(ptog)ptog.classList.toggle('on',allOn);
+}
+
+/* ============================================================
+   CAT SETTINGS
+   ============================================================ */
+function renderCatSettings(){
+  const el=document.getElementById('catListEl');
+  if(cats.length===0){el.innerHTML='<div class="empty-msg">カテゴリがありません</div>';return;}
+  el.innerHTML=cats.map(cat=>`
+    <div class="cat-row">
+      <span class="cat-swatch" style="background:${cat.color};cursor:pointer" onclick="openEditCat(cats.find(c=>c.id==='${cat.id}'))"></span>
+      <span class="cat-row-name">${cat.name}</span>
+      <button class="cat-row-btn" onclick="openEditCat(cats.find(c=>c.id==='${cat.id}'))">編集</button>
+      <button class="cat-row-btn cat-row-del" onclick="deleteCat(cats.find(c=>c.id==='${cat.id}'))">削除</button>
+    </div>`).join('');
+}
+
+/* ============================================================
+   STATS
+   ============================================================ */
+function renderStats(){
+  const canvas=document.getElementById('pieCanvas');
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,180,180);
+  const totals={};
+  blocks.forEach(b=>{
+    const[sh,sm]=b.start.split(':').map(Number),[eh,em]=b.end.split(':').map(Number);
+    const dur=(eh+em/60)-(sh+sm/60);if(dur>0)totals[b.catId]=(totals[b.catId]||0)+dur;
+  });
+  const entries=Object.entries(totals).filter(([,v])=>v>0);
+  const total=entries.reduce((s,[,v])=>s+v,0)||1;
+  let angle=-Math.PI/2;const cx=90,cy=90,r=72,thick=26;
+  if(entries.length===0){
+    ctx.beginPath();ctx.arc(cx,cy,r,0,2*Math.PI);ctx.strokeStyle='#e5e5e5';ctx.lineWidth=thick;ctx.stroke();
+  } else {
+    entries.forEach(([catId,val])=>{
+      const cat=cats.find(c=>c.id===catId);
+      const sweep=(val/total)*2*Math.PI;
+      ctx.beginPath();ctx.arc(cx,cy,r,angle,angle+sweep);
+      ctx.strokeStyle=cat?cat.color:'#888';ctx.lineWidth=thick;ctx.stroke();angle+=sweep;
+    });
+  }
+  const list=document.getElementById('catStatList');
+  if(entries.length===0){list.innerHTML='<div class="empty-msg">ブロックを追加すると集計されます</div>';return;}
+  list.innerHTML=entries.sort((a,b)=>b[1]-a[1]).map(([catId,val])=>{
+    const cat=cats.find(c=>c.id===catId);
+    const pct=Math.round(val/total*100);
+    const hrs=Math.floor(val),mins=Math.round((val-hrs)*60);
+    const ts=hrs>0?(mins>0?`${hrs}時間${mins}分`:`${hrs}時間`):`${mins}分`;
+    return `<div class="cat-stat-row">
+      <span class="cat-dot" style="background:${cat?cat.color:'#888'}"></span>
+      <span class="cat-stat-name">${cat?cat.name:'不明'}</span>
+      <span class="cat-stat-hours">${ts}</span>
+      <span class="cat-stat-pct">${pct}%</span>
+    </div>`;
+  }).join('');
+}
+
+/* ============================================================
+   MODAL / TOAST
+   ============================================================ */
+function openModal(id){
+  const el=document.getElementById(id);
+  el.classList.remove('closing');
+  el.classList.add('open');
+}
+function closeModal(id){
+  const el=document.getElementById(id);
+  el.classList.add('closing');
+  setTimeout(()=>{el.classList.remove('open','closing');},230);
+}
+['blockModal','catModal'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal(id);});
+});
+let toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+/* ============================================================
+   DEMO & INIT
+   ============================================================ */
+function insertDemo(){
+  blocks=[
+    {id:'d1',catId:'c1',start:'09:00',end:'12:00',notifMin:10,notifEnabled:true,dayIndex:0},
+    {id:'d2',catId:'c1',start:'09:00',end:'12:00',notifMin:10,notifEnabled:true,dayIndex:1},
+    {id:'d3',catId:'c1',start:'09:00',end:'12:00',notifMin:10,notifEnabled:true,dayIndex:2},
+    {id:'d4',catId:'c1',start:'09:00',end:'12:00',notifMin:10,notifEnabled:true,dayIndex:3},
+    {id:'d5',catId:'c1',start:'09:00',end:'12:00',notifMin:10,notifEnabled:true,dayIndex:4},
+    {id:'d6',catId:'c1',start:'13:00',end:'18:00',notifMin:0,notifEnabled:true,dayIndex:0},
+    {id:'d7',catId:'c1',start:'13:00',end:'18:00',notifMin:0,notifEnabled:true,dayIndex:1},
+    {id:'d8',catId:'c1',start:'13:00',end:'18:00',notifMin:0,notifEnabled:true,dayIndex:2},
+    {id:'d9',catId:'c1',start:'13:00',end:'18:00',notifMin:0,notifEnabled:true,dayIndex:3},
+    {id:'d10',catId:'c1',start:'13:00',end:'18:00',notifMin:0,notifEnabled:true,dayIndex:4},
+    {id:'d11',catId:'c3',start:'12:00',end:'13:00',notifMin:5,notifEnabled:true,dayIndex:0},
+    {id:'d12',catId:'c3',start:'12:00',end:'13:00',notifMin:5,notifEnabled:true,dayIndex:1},
+    {id:'d13',catId:'c3',start:'12:00',end:'13:00',notifMin:5,notifEnabled:true,dayIndex:2},
+    {id:'d14',catId:'c3',start:'12:00',end:'13:00',notifMin:5,notifEnabled:true,dayIndex:3},
+    {id:'d15',catId:'c3',start:'12:00',end:'13:00',notifMin:5,notifEnabled:true,dayIndex:4},
+    {id:'d16',catId:'c4',start:'07:00',end:'08:00',notifMin:15,notifEnabled:true,dayIndex:0},
+    {id:'d17',catId:'c4',start:'07:00',end:'08:00',notifMin:15,notifEnabled:true,dayIndex:2},
+    {id:'d18',catId:'c4',start:'07:00',end:'08:00',notifMin:15,notifEnabled:true,dayIndex:4},
+    {id:'d19',catId:'c5',start:'10:00',end:'22:00',notifMin:0,notifEnabled:true,dayIndex:5},
+    {id:'d20',catId:'c2',start:'09:00',end:'20:00',notifMin:0,notifEnabled:true,dayIndex:6},
+  ];
+  Store.saveB(blocks);
+}
+
+if(blocks.length===0)insertDemo();
+buildDayTabs();
+buildTimeline();
+document.getElementById('cr-year').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>
