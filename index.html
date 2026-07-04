@@ -10,7 +10,7 @@
   --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
   --ink:#1c1c1e;--ink2:#6b6b70;--ink3:#aeaeb2;
   --accent:#3a5f82;--accent-l:#e6eef5;
-  --nav-h:60px;--top-h:52px;--tab-h:40px;--r:12px;--r-sm:8px;--ad-h:52px;--gutter-w:44px;
+  --nav-h:60px;--top-h:52px;--tab-h:40px;--r:12px;--r-sm:8px;--ad-h:52px;--gutter-w:56px;--wk-hd-h:32px;
 }
 .icon{width:1em;height:1em;fill:currentColor;display:block;flex:none}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -89,9 +89,9 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 
 /* WEEK GRID */
 .week-wrap{flex:1;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;background:var(--bg)}
-.week-inner{display:grid;grid-template-columns:40px repeat(7,1fr);min-width:380px;min-height:100%}
-.wk-corner{position:sticky;top:0;left:0;z-index:6;background:var(--surface);border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
-.wk-day-hd{position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--border);border-right:1px solid var(--border);padding:6px 2px;text-align:center;font-size:10px;font-weight:500;color:var(--ink2)}
+.week-inner{display:grid;grid-template-columns:40px repeat(7,1fr);grid-auto-rows:min-content;align-content:start;min-width:380px;min-height:100%}
+.wk-corner{height:var(--wk-hd-h);position:sticky;top:0;left:0;z-index:6;background:var(--surface);border-right:1px solid var(--border);border-bottom:1px solid var(--border)}
+.wk-day-hd{height:var(--wk-hd-h);box-sizing:border-box;position:sticky;top:0;z-index:5;background:var(--surface);border-bottom:1px solid var(--border);border-right:1px solid var(--border);padding:6px 2px;text-align:center;font-size:10px;font-weight:500;color:var(--ink2);display:flex;align-items:center;justify-content:center}
 .wk-day-hd.today{color:var(--accent);background:var(--accent-l)}
 .wk-time-col{position:sticky;left:0;z-index:4;background:var(--surface);border-right:1px solid var(--border)}
 .wk-time-lbl{height:54px;display:flex;align-items:flex-start;padding:3px 4px 0;font-size:9px;color:var(--ink3);border-bottom:1px solid var(--border)}
@@ -125,7 +125,7 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 .block-time{font-weight:400;opacity:.8;margin-left:6px;font-size:11px;font-variant-numeric:tabular-nums}
 
 @keyframes blocks-fade-in{from{opacity:0}to{opacity:1}}
-.blocks-col.fade-in{animation:blocks-fade-in .22s ease}
+.blocks-col.fade-in{animation:blocks-fade-in .55s ease}
 @media(prefers-reduced-motion:reduce){.blocks-col.fade-in{animation:none}}
 
 /* SCREEN CONTAINER */
@@ -160,9 +160,9 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 .chevron{color:var(--ink3);font-size:16px;flex:none;display:flex}
 
 /* TOGGLE */
-.toggle-sw{width:44px;height:26px;border-radius:999px;background:var(--border2);position:relative;cursor:pointer;transition:background .22s cubic-bezier(.4,0,.2,1);border:none;flex:none;padding:0}
+.toggle-sw{width:44px;height:26px;border-radius:999px;background:var(--border2);position:relative;cursor:pointer;transition:background .32s cubic-bezier(.4,0,.2,1);border:none;flex:none;padding:0;will-change:background-color}
 .toggle-sw.on{background:var(--accent)}
-.toggle-sw::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .22s cubic-bezier(.4,0,.2,1);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle-sw::after{content:'';position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:transform .32s cubic-bezier(.34,1.4,.4,1);box-shadow:0 1px 3px rgba(0,0,0,.2);will-change:transform}
 .toggle-sw.on::after{transform:translateX(18px)}
 
 /* NOTIF ACCORDION */
@@ -205,9 +205,11 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 .modal-bg.closing .modal{animation:modal-slide-out .22s cubic-bezier(.32,.72,0,1) both}
 .modal{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-width:480px;padding:0 0 env(safe-area-inset-bottom);max-height:92vh;overflow-y:auto}
 .modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:10px auto 0}
-.modal-header{display:flex;align-items:center;padding:14px 16px 12px;border-bottom:1px solid var(--border)}
+.modal-header{display:flex;align-items:center;gap:8px;padding:14px 16px 12px;border-bottom:1px solid var(--border)}
 .modal-title{font-size:16px;font-weight:600;color:var(--ink);flex:1}
-.modal-close{width:28px;height:28px;border-radius:999px;border:none;background:var(--surface2);color:var(--ink2);font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.modal-close{width:28px;height:28px;border-radius:999px;border:none;background:var(--surface2);color:var(--ink2);font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.modal-danger-btn{width:28px;height:28px;border-radius:999px;border:none;background:#c0392b;color:#fff;font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex:none}
+.modal-danger-btn:active{opacity:.8}
 .modal-body{padding:16px}
 .field{margin-bottom:14px}
 .field label{display:block;font-size:12px;color:var(--ink3);font-weight:500;margin-bottom:5px}
@@ -215,8 +217,8 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 .field input:focus,.field select:focus{border-color:var(--accent)}
 .field-row{display:flex;gap:10px}
 .field-row .field{flex:1}
-.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
-.chip{padding:6px 12px;border-radius:999px;border:none;font:inherit;font-size:13px;color:var(--ink2);background:var(--surface2);cursor:pointer;transition:background .15s,color .15s}
+.chips{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:4px}
+.chip{padding:8px 2px;border-radius:999px;border:none;font:inherit;font-size:12.5px;color:var(--ink2);background:var(--surface2);cursor:pointer;transition:background .15s,color .15s;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .chip.on{background:var(--accent);color:#fff}
 .copy-days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:6px}
 .copy-day{padding:8px 0;text-align:center;border-radius:var(--r-sm);border:none;font-size:12px;font-weight:500;cursor:pointer;background:var(--surface2);color:var(--ink2);transition:background .15s,color .15s}
@@ -228,7 +230,7 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 .modal-footer{display:flex;gap:8px;padding:12px 16px;border-top:1px solid var(--border)}
 .btn{flex:1;padding:13px;border-radius:var(--r-sm);border:none;font:inherit;font-size:15px;font-weight:500;cursor:pointer;background:var(--surface2);color:var(--ink2);display:flex;align-items:center;justify-content:center;gap:6px}
 .btn-primary{background:var(--accent);color:#fff}
-.btn-danger{color:#c0392b;background:none;flex:none;width:46px}
+.btn-danger-solid{background:#c0392b;color:#fff}
 .btn:active{opacity:.8}
 .cat-select-wrap{display:flex;gap:8px;align-items:center}
 .cat-select-wrap select{flex:1}
@@ -398,7 +400,8 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
     <div class="modal-handle"></div>
     <div class="modal-header">
       <span class="modal-title" id="blockModalTitle">ブロックを追加</span>
-      <button class="modal-close" onclick="closeModal('blockModal')"><svg class="icon" viewBox="0 -960 960 960"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></button>
+      <button class="modal-danger-btn" id="btnDel" style="display:none" onclick="deleteBlock()" title="削除"><svg class="icon" viewBox="0 -960 960 960"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg></button>
+      <button class="modal-close" onclick="attemptCloseModal('blockModal')"><svg class="icon" viewBox="0 -960 960 960"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></button>
     </div>
     <div class="modal-body">
       <div class="field">
@@ -432,8 +435,6 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-danger" id="btnDel" style="display:none" onclick="deleteBlock()" title="削除"><svg class="icon" viewBox="0 -960 960 960"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></svg></button>
-      <button class="btn" onclick="closeModal('blockModal')">キャンセル</button>
       <button class="btn btn-primary" onclick="saveBlock()">保存</button>
     </div>
   </div>
@@ -445,7 +446,7 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
     <div class="modal-handle"></div>
     <div class="modal-header">
       <span class="modal-title" id="catModalTitle">カテゴリを追加</span>
-      <button class="modal-close" onclick="closeCatModal()"><svg class="icon" viewBox="0 -960 960 960"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></button>
+      <button class="modal-close" onclick="attemptCloseModal('catModal')"><svg class="icon" viewBox="0 -960 960 960"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></button>
     </div>
     <div class="modal-body">
       <div class="field">
@@ -458,8 +459,21 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn" onclick="closeCatModal()">キャンセル</button>
       <button class="btn btn-primary" onclick="saveCat()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: 確認ポップアップ（削除・破棄などの確認に共通利用） ===== -->
+<div class="modal-bg" id="confirmModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-body" style="padding-top:22px">
+      <p id="confirmMsg" style="font-size:14.5px;line-height:1.7;color:var(--ink);white-space:pre-line"></p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" id="confirmCancelBtn">キャンセル</button>
+      <button class="btn btn-primary" id="confirmOkBtn">OK</button>
     </div>
   </div>
 </div>
@@ -609,10 +623,11 @@ function computeHourH(){
   hourH=Math.max(Math.floor(avail/(END_H-START_H)),18);
 }
 
+const WK_HEADER_H=32; // CSS変数 --wk-hd-h と一致させる（曜日ヘッダーの高さを実測せず固定値で扱い、
+                       // グリッドの auto 行がヘッダーへ余白を吸収してしまう不具合を避ける）
 function computeWeekRowH(){
   const wrap=document.getElementById('weekWrap');
-  const hdH=document.querySelector('.wk-day-hd')?.offsetHeight||32;
-  const avail=Math.max((wrap.clientHeight||600)-hdH,150);
+  const avail=Math.max((wrap.clientHeight||600)-WK_HEADER_H,150);
   wkHourH=Math.max(Math.floor(avail/(END_H-START_H)),16);
 }
 
@@ -928,8 +943,10 @@ function saveBlock(){
   if(currentView==='week') renderWeekBlocks();
   showToast(editingBlock?'更新しました':'追加しました');editingBlock=null;
 }
-function deleteBlock(){
-  if(!editingBlock||!confirm('このブロックを削除しますか？'))return;
+async function deleteBlock(){
+  if(!editingBlock)return;
+  const ok=await showConfirm('このブロックを削除しますか？',{okLabel:'削除',danger:true});
+  if(!ok)return;
   blocks=blocks.filter(b=>b!==editingBlock);
   Store.saveB(blocks);closeModal('blockModal');renderBlocksForDay(activeDayIndex);
   if(currentView==='week') renderWeekBlocks();
@@ -973,12 +990,13 @@ function saveCat(){
   showToast(editingCat?'カテゴリを更新しました':'カテゴリを追加しました');
 }
 function closeCatModal(){closeModal('catModal');editingCat=null;}
-function deleteCat(cat){
+async function deleteCat(cat){
   const inUse=blocks.some(b=>b.catId===cat.id);
   const msg=inUse
     ? `「${cat.name}」を削除しますか？\nこのカテゴリが設定された予定もすべて削除されます。この操作は取り消せません。`
     : `「${cat.name}」を削除しますか？`;
-  if(!confirm(msg))return;
+  const ok=await showConfirm(msg,{okLabel:'削除',danger:true});
+  if(!ok)return;
   if(inUse){
     blocks=blocks.filter(b=>b.catId!==cat.id);
     Store.saveB(blocks);
@@ -1182,9 +1200,36 @@ function closeModal(id){
   el.classList.add('closing');
   setTimeout(()=>{el.classList.remove('open','closing');},230);
 }
-['blockModal','catModal'].forEach(id=>{
-  document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal(id);});
-});
+
+// ブロック/カテゴリ編集モーダルは「閉じる」ボタンからのみキャンセルできる。
+// 誤操作で入力内容が消えないよう、閉じる前に確認ポップアップを挟む。
+async function attemptCloseModal(id){
+  const ok=await showConfirm('編集内容は保存されません。閉じますか？',{okLabel:'閉じる'});
+  if(ok) closeModal(id);
+}
+
+// 汎用の確認ポップアップ（ネイティブconfirm()はサンドボックス化された
+// 環境（Artifactプレビュー等）でブロックされ得るため、アプリ内モーダルで代替する
+let _confirmResolve=null;
+function showConfirm(message,opts={}){
+  return new Promise(resolve=>{
+    _confirmResolve=resolve;
+    document.getElementById('confirmMsg').textContent=message;
+    const okBtn=document.getElementById('confirmOkBtn');
+    okBtn.textContent=opts.okLabel||'OK';
+    okBtn.className='btn'+(opts.danger?' btn-danger-solid':' btn-primary');
+    document.getElementById('confirmCancelBtn').textContent=opts.cancelLabel||'キャンセル';
+    openModal('confirmModal');
+  });
+}
+function _resolveConfirm(val){
+  closeModal('confirmModal');
+  const r=_confirmResolve;_confirmResolve=null;
+  if(r) r(val);
+}
+document.getElementById('confirmOkBtn').addEventListener('click',()=>_resolveConfirm(true));
+document.getElementById('confirmCancelBtn').addEventListener('click',()=>_resolveConfirm(false));
+
 let toastTimer;
 function showToast(msg){
   const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
