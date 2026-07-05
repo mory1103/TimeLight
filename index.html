@@ -6,10 +6,10 @@
 <title>routine.</title>
 <style>
 :root {
-  --bg:#f5f4f1;--surface:#fff;--surface2:#f0eeeb;
-  --border:rgba(0,0,0,.08);--border2:rgba(0,0,0,.14);
-  --ink:#1c1c1e;--ink2:#6b6b70;--ink3:#aeaeb2;
-  --accent:#3a5f82;--accent-l:#e6eef5;
+  --bg:#f4f5f9;--surface:#fff;--surface2:#e9eaf2;
+  --border:rgba(30,34,60,.09);--border2:rgba(30,34,60,.16);
+  --ink:#363b4d;--ink2:#71768c;--ink3:#a7abbe;
+  --accent:#3d34e8;--accent-l:#e7e5fd;
   --nav-h:60px;--top-h:52px;--tab-h:32px;--r:12px;--r-sm:8px;--ad-h:52px;--gutter-w:56px;--wk-hd-h:32px;
 }
 .icon{width:1em;height:1em;fill:currentColor;display:block;flex:none}
@@ -121,10 +121,12 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 .add-hint{position:absolute;left:50%;transform:translateX(-50%);font-size:11px;color:var(--ink3);white-space:nowrap;top:50%;margin-top:-8px;pointer-events:none}
 
 /* BLOCKS */
-.block{position:absolute;left:4px;right:4px;border-radius:8px;padding:5px 9px;cursor:pointer;overflow:hidden;transition:filter .1s;z-index:2;box-shadow:inset 3px 0 0 rgba(0,0,0,.16),0 1px 2px rgba(0,0,0,.06);display:flex;align-items:flex-start;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.28)}
-.block:active{filter:brightness(.9)}
+.block{position:absolute;left:4px;right:4px;border-radius:12px;padding:6px 10px;cursor:pointer;overflow:hidden;transition:filter .1s,box-shadow .15s;z-index:2;box-shadow:0 2px 6px rgba(30,34,60,.14);display:flex;align-items:flex-start;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.22)}
+.block:active{filter:brightness(.95)}
+/* 重なっている予定は下＋右にずらし、影を強めてカードが浮いて見えるように */
+.block.stacked{box-shadow:0 6px 18px rgba(30,34,60,.30)}
 /* 高さが最小に近いブロックは文字が切れないよう縦中央寄せ＋余白を詰める */
-.block.compact{padding-top:0;padding-bottom:0;align-items:center;border-radius:6px}
+.block.compact{padding-top:0;padding-bottom:0;align-items:center;border-radius:10px}
 .block.compact .block-line{font-size:11px;line-height:1.1}
 .block-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;letter-spacing:.01em}
 .block-name{font-weight:700}
@@ -541,7 +543,7 @@ function openExternalLink(key){
    STORE
    ============================================================ */
 const Store={
-  B:'routine.blocks.v2',C:'routine.cats.v2',N:'routine.notif.v1',
+  B:'routine.blocks.v2',C:'routine.cats.v3',N:'routine.notif.v1',
   blocks(){try{return JSON.parse(localStorage.getItem(this.B))||[];}catch{return[];}},
   cats(){try{return JSON.parse(localStorage.getItem(this.C))||null;}catch{return null;}},
   notif(){try{return JSON.parse(localStorage.getItem(this.N))??true;}catch{return true;}},
@@ -553,9 +555,8 @@ const Store={
 /* ============================================================
    STATE
    ============================================================ */
-const PAL=['#3a5f82','#6c63d4','#d4537e','#e8543a','#e67e22',
-           '#f1c40f','#2ecc71','#1abc9c','#3d9e7a','#e84393',
-           '#8e44ad','#c0392b','#6b7b8d','#34495e','#e84040','#3498db'];
+const PAL=['#ec4899','#ef4444','#f0603a','#f5943a','#f5c518',
+           '#35c759','#4bb4f1','#3b82f6','#3d34e8','#b6bacb'];
 const DAYS=['月','火','水','木','金','土','日'];
 const START_H=5,END_H=24,HOUR_H=60,WK_HOUR_H=54;
 
@@ -585,11 +586,11 @@ let settingStack=[]; // 設定の階層
 
 function defCats(){
   return[
-    {id:'c1',name:'仕事',color:'#3a5f82'},
-    {id:'c2',name:'睡眠',color:'#6c63d4'},
-    {id:'c3',name:'食事',color:'#2ecc71'},
-    {id:'c4',name:'運動',color:'#e67e22'},
-    {id:'c5',name:'自由',color:'#d4537e'},
+    {id:'c1',name:'仕事',color:'#3d34e8'},
+    {id:'c2',name:'睡眠',color:'#4bb4f1'},
+    {id:'c3',name:'食事',color:'#35c759'},
+    {id:'c4',name:'運動',color:'#f5943a'},
+    {id:'c5',name:'自由',color:'#ec4899'},
   ];
 }
 
@@ -871,8 +872,8 @@ function renderBlocksForDay(di){
   hint.style.display=dayBlocks.length?'none':'';
 
   // 重なり判定：各ブロックについて、時間が重なる「先行ブロック」の数を段数(depth)とし、
-  // その分だけ右へずらして重なりが見えるようにする
-  const INDENT=14;
+  // その分だけ下＋右にずらし、影を付けてカードが重なって見えるようにする
+  const INDENT_X=18, INDENT_Y=12;
   dayBlocks.forEach((b,i)=>{
     const cat=cats.find(c=>c.id===b.catId)||cats[0];
     const top=timeToY(b.start),rawH=timeToY(b.end)-top;
@@ -885,8 +886,8 @@ function renderBlocksForDay(di){
     }
     const compact = bh<30;
     const div=document.createElement('div');
-    div.className='block'+(compact?' compact':'');
-    div.style.cssText=`top:${top+1}px;height:${bh}px;left:${4+depth*INDENT}px;background:${cat.color};z-index:${2+i}`;
+    div.className='block'+(compact?' compact':'')+(depth>0?' stacked':'');
+    div.style.cssText=`top:${top+1+depth*INDENT_Y}px;height:${bh}px;left:${4+depth*INDENT_X}px;background:${cat.color};z-index:${2+i}`;
     const line=document.createElement('div');
     line.className='block-line';
     line.innerHTML = bh>=18
