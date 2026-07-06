@@ -102,11 +102,10 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 .wk-hour-cell{height:54px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s}
 .wk-hour-cell:active{background:rgba(58,95,130,.05)}
 .wk-half{position:absolute;left:0;right:0;height:0;border-top:1px dashed var(--border);top:27px;pointer-events:none}
-.wk-block{position:absolute;left:2px;right:2px;border-radius:6px;padding:2px 4px;font-size:9px;overflow:hidden;cursor:pointer;z-index:2;transition:filter .1s;display:flex;align-items:flex-start;color:#fff;box-shadow:0 1px 3px rgba(30,34,60,.16)}
+.wk-block{position:absolute;left:2px;right:2px;border-radius:4px;padding:2px 4px;font-size:9px;overflow:hidden;cursor:pointer;z-index:2;transition:filter .1s;display:flex;align-items:flex-start;color:#fff}
 .wk-block:active{filter:brightness(.9)}
-.wk-block.stacked{box-shadow:0 4px 10px rgba(30,34,60,.30)}
 .wk-block-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.wk-block-name{font-weight:700}
+.wk-block-name{font-weight:600}
 
 /* TIMELINE */
 .timeline-wrap{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;background:var(--bg)}
@@ -122,15 +121,13 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 .add-hint{position:absolute;left:50%;transform:translateX(-50%);font-size:11px;color:var(--ink3);white-space:nowrap;top:50%;margin-top:-8px;pointer-events:none}
 
 /* BLOCKS */
-.block{position:absolute;left:4px;right:4px;border-radius:12px;padding:6px 10px;cursor:pointer;overflow:hidden;transition:filter .1s,box-shadow .15s;z-index:2;box-shadow:0 2px 6px rgba(30,34,60,.14);display:flex;align-items:flex-start;color:#fff}
+.block{position:absolute;left:4px;right:4px;border-radius:8px;padding:6px 10px;cursor:pointer;overflow:hidden;transition:filter .1s;z-index:2;display:flex;align-items:flex-start;color:#fff}
 .block:active{filter:brightness(.95)}
-/* 重なっている予定は下＋右にずらし、影を強めてカードが浮いて見えるように */
-.block.stacked{box-shadow:0 6px 18px rgba(30,34,60,.30)}
 /* 高さが最小に近いブロックは文字が切れないよう縦中央寄せ＋余白を詰める */
-.block.compact{padding-top:0;padding-bottom:0;align-items:center;border-radius:10px}
+.block.compact{padding-top:0;padding-bottom:0;align-items:center;border-radius:6px}
 .block.compact .block-line{font-size:11px;line-height:1.1}
 .block-line{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;letter-spacing:.01em}
-.block-name{font-weight:700}
+.block-name{font-weight:600}
 .block-time{font-weight:400;opacity:.8;margin-left:6px;font-size:11px;font-variant-numeric:tabular-nums}
 
 @keyframes blocks-fade-in{from{opacity:0}to{opacity:1}}
@@ -170,6 +167,8 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
 .list-row:last-child{border-bottom:none}
 .list-row:active{background:var(--surface2)}
 .list-row-label{flex:1;font-size:15px;color:var(--ink)}
+.list-row-label.label-with-icon{display:flex;align-items:center;gap:6px}
+.ext-link-icon{font-size:13px;color:var(--ink3);display:flex;flex:none}
 .list-row-sub{font-size:12px;color:var(--ink3);margin-top:1px}
 .chevron{color:var(--ink3);font-size:16px;flex:none;display:flex}
 
@@ -303,15 +302,15 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
     <span class="topbar-logo">routine<span>.</span></span>
     <div style="margin-left:auto;display:flex;align-items:center;gap:8px">
       <div class="seg-wrap">
-        <button class="seg-btn active" id="seg-day" onclick="switchView('day')">1日</button>
-        <button class="seg-btn" id="seg-week" onclick="switchView('week')">週</button>
+        <button class="seg-btn" id="seg-day" onclick="switchView('day')">1日</button>
+        <button class="seg-btn active" id="seg-week" onclick="switchView('week')">週</button>
       </div>
       <button class="icon-btn" onclick="openAddBlock(null,true)" title="追加"><svg class="icon" viewBox="0 -960 960 960" ><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg></button>
     </div>
   </div>
 
   <!-- 1日ビュー -->
-  <div id="view-day" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+  <div id="view-day" style="display:none;flex-direction:column;flex:1;overflow:hidden">
     <div class="day-tabs" id="dayTabs"></div>
     <div class="timeline-wrap" id="timelineWrap">
       <div class="timeline-inner">
@@ -325,7 +324,7 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
   </div>
 
   <!-- 週グリッドビュー -->
-  <div id="view-week" style="display:none;flex:1;overflow:hidden;flex-direction:column">
+  <div id="view-week" style="display:flex;flex:1;overflow:hidden;flex-direction:column">
     <div class="week-wrap" id="weekWrap">
       <div class="week-inner" id="weekInner"></div>
     </div>
@@ -362,17 +361,15 @@ body{font-family:"Hiragino Sans","Yu Gothic UI",sans-serif;background:var(--bg);
     <div class="list-card" style="margin-top:12px">
       <div class="list-row" onclick="openExternalLink('feedback')">
         <div>
-          <div class="list-row-label">バグ報告・要望</div>
+          <div class="list-row-label label-with-icon">バグ報告・要望<span class="ext-link-icon"><svg class="icon" viewBox="0 -960 960 960"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg></span></div>
           <div class="list-row-sub">気になった点を教えてください</div>
         </div>
-        <span class="chevron" style="font-size:14px;opacity:.5"><svg class="icon" viewBox="0 -960 960 960"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg></span>
       </div>
       <div class="list-row" onclick="openExternalLink('donate')">
         <div>
-          <div class="list-row-label">寄附で応援する</div>
+          <div class="list-row-label label-with-icon">寄附で応援する<span class="ext-link-icon"><svg class="icon" viewBox="0 -960 960 960"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg></span></div>
           <div class="list-row-sub">開発の継続を支援いただけると嬉しいです</div>
         </div>
-        <span class="chevron" style="font-size:14px;opacity:.5"><svg class="icon" viewBox="0 -960 960 960"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h560v-280h80v280q0 33-23.5 56.5T760-120H200Zm188-212-56-56 372-372H560v-80h280v280h-80v-144L388-332Z"/></svg></span>
       </div>
     </div>
     <p style="text-align:center;font-size:11px;color:var(--ink3);padding:24px 0 8px;">&copy; <span id="cr-year"></span> TimeLight. All rights reserved.</p>
@@ -574,7 +571,7 @@ function icon(name){
 let blocks=Store.blocks();
 let cats=Store.cats()||defCats();
 let masterNotif=Store.notif();
-let currentView='day'; // 'day' | 'week'
+let currentView='week'; // 'day' | 'week'（デフォルトは週表示）
 let activeDayIndex=(()=>{const d=new Date().getDay();return d===0?6:d-1;})();
 let editingBlock=null,editingCat=null,selNotifMin=10,selColor=PAL[0];
 let copySet=new Set(),catFromBlock=false,copyFreeMode=false;
@@ -670,7 +667,7 @@ function switchView(v){
   document.getElementById('seg-day').classList.toggle('active',  v==='day');
   document.getElementById('seg-week').classList.toggle('active', v==='week');
   if(v==='week') buildWeekGrid();
-  if(v==='day'){ buildTimeline(); }
+  if(v==='day'){ buildTimeline(); moveDayTabIndicator(activeDayIndex,false); }
 }
 
 /* ============================================================
@@ -1408,7 +1405,7 @@ function insertDemo(){
 
 if(blocks.length===0)insertDemo();
 buildDayTabs();
-buildTimeline();
+buildWeekGrid(); // デフォルトは週表示
 document.getElementById('cr-year').textContent = new Date().getFullYear();
 // 下メニューのインジケーターを初期位置（アクティブ項目）へ配置（アニメーションなし）
 moveNavIndicator(document.querySelector('.nav-item.active'),false);
