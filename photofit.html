@@ -123,6 +123,7 @@ input[type="color"]::-webkit-color-swatch{border:none;border-radius:6px}
 
   const state = {
     img: null,        // ImageBitmap
+    imgCanvas: null,  // HTMLCanvasElement copy (avoids iOS Safari ctx.filter + ImageBitmap glitch)
     ratio: '3:4',
     bgMode: 'solid',  // 'solid' | 'blur-light' | 'blur-dark'
     bgColor: '#ffffff',
@@ -168,6 +169,11 @@ input[type="color"]::-webkit-color-swatch{border:none;border-radius:6px}
       return;
     }
     state.img = bmp;
+    const c = document.createElement('canvas');
+    c.width = bmp.width;
+    c.height = bmp.height;
+    c.getContext('2d').drawImage(bmp, 0, 0);
+    state.imgCanvas = c;
     $selectBtn.classList.add('compact');
     $selMain.textContent = '写真を変更';
     $previewWrap.classList.add('on');
@@ -249,7 +255,7 @@ input[type="color"]::-webkit-color-swatch{border:none;border-radius:6px}
       ctx.filter = state.bgMode === 'blur-light'
         ? 'blur(40px) brightness(1.5)'
         : 'blur(40px) brightness(0.55)';
-      ctx.drawImage(img, bgX, bgY, bgW, bgH);
+      ctx.drawImage(state.imgCanvas, bgX, bgY, bgW, bgH);
       ctx.filter = 'none';
     }
 
