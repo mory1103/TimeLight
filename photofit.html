@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>photofit</title>
+<style>
+:root{
+  --bg:#f5f4f1;--surface:#fff;--border:rgba(0,0,0,.10);
+  --ink:#1c1c1e;--ink2:#6b6b70;--ink3:#aeaeb2;
+  --accent:#3a5f82;--accent-l:#e6eef5;--r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--ink);font-family:-apple-system,"Hiragino Sans","Yu Gothic UI",sans-serif;font-size:15px;line-height:1.5}
+body{padding:16px 14px 40px;padding-top:calc(16px + env(safe-area-inset-top));padding-bottom:calc(40px + env(safe-area-inset-bottom));max-width:520px;margin:0 auto}
+h1{font-size:20px;font-weight:700;letter-spacing:.02em;margin-bottom:14px}
+h1 span{color:var(--accent)}
+
+.select-btn{display:block;width:100%;padding:14px;background:var(--surface);border:1px dashed var(--ink3);border-radius:var(--r);text-align:center;color:var(--ink2);font-size:14px;cursor:pointer}
+.select-btn:active{opacity:.7}
+.select-btn input{display:none}
+
+.preview-wrap{margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:10px;display:none}
+.preview-wrap.on{display:block}
+#preview{display:block;width:100%;height:auto;border-radius:6px;background:#eee}
+
+.panel{margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;display:none}
+.panel.on{display:block}
+.field{padding:10px 0;border-top:1px solid var(--border)}
+.field:first-child{border-top:none;padding-top:2px}
+.field.hidden{display:none}
+.field-label{font-size:12px;color:var(--ink2);margin-bottom:8px;font-weight:600}
+.note{font-size:11px;color:var(--ink3);margin-top:6px;line-height:1.4}
+
+.radios{display:flex;flex-wrap:wrap;gap:6px}
+.radios label{flex:1;min-width:88px;position:relative;cursor:pointer}
+.radios input{position:absolute;opacity:0;pointer-events:none}
+.radios span{display:block;text-align:center;padding:8px 6px;font-size:13px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--ink2);transition:background .12s,color .12s,border-color .12s}
+.radios input:checked + span{background:var(--accent-l);color:var(--accent);border-color:var(--accent)}
+
+.color-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.color-btn{padding:8px 14px;font-size:13px;border-radius:8px;background:var(--bg);border:1px solid var(--border);color:var(--ink2);cursor:pointer;font:inherit;font-weight:500}
+.color-btn.active{background:var(--accent-l);color:var(--accent);border-color:var(--accent)}
+.color-swatch{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:none;padding:0;cursor:pointer}
+input[type="color"]{-webkit-appearance:none;appearance:none}
+input[type="color"]::-webkit-color-swatch-wrapper{padding:0}
+input[type="color"]::-webkit-color-swatch{border:none;border-radius:6px}
+
+.save-btn{margin-top:14px;display:none;width:100%;padding:14px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:15px;font-weight:600;cursor:pointer}
+.save-btn.on{display:block}
+.save-btn:active{opacity:.85}
+.save-btn:disabled{opacity:.5}
+</style>
+</head>
+<body>
+
+<h1>photo<span>fit</span></h1>
+
+<label class="select-btn" id="selectBtn">
+  写真を選択
+  <input type="file" id="file" accept="image/*">
+</label>
+
+<div class="preview-wrap" id="previewWrap">
+  <canvas id="preview"></canvas>
+</div>
+
+<div class="panel" id="panel">
+  <div class="field">
+    <div class="field-label">出力比率</div>
+    <div class="radios" id="ratioRadios">
+      <label><input type="radio" name="ratio" value="3:4" checked><span>3:4（推奨）</span></label>
+      <label><input type="radio" name="ratio" value="4:5"><span>4:5</span></label>
+      <label><input type="radio" name="ratio" value="1:1"><span>1:1</span></label>
+    </div>
+    <div class="note" id="ratioNote" style="display:none">グリッドで上下が切れます</div>
+  </div>
+
+  <div class="field">
+    <div class="field-label">背景モード</div>
+    <div class="radios" id="bgModeRadios">
+      <label><input type="radio" name="bgmode" value="solid" checked><span>単色</span></label>
+      <label><input type="radio" name="bgmode" value="blur-light"><span>ぼかし（明るく）</span></label>
+      <label><input type="radio" name="bgmode" value="blur-dark"><span>ぼかし（暗く）</span></label>
+    </div>
+  </div>
+
+  <div class="field" id="colorField">
+    <div class="field-label">背景色</div>
+    <div class="color-row">
+      <button class="color-btn active" data-color="#ffffff" id="btnWhite">白</button>
+      <button class="color-btn" data-color="#000000" id="btnBlack">黒</button>
+      <input type="color" class="color-swatch" id="colorPicker" value="#ffffff">
+    </div>
+  </div>
+
+  <div class="field hidden" id="posField">
+    <div class="field-label">配置</div>
+    <div class="radios" id="posRadios">
+      <label><input type="radio" name="pos" value="center" checked><span>中央</span></label>
+      <label><input type="radio" name="pos" value="top"><span>上寄せ</span></label>
+      <label><input type="radio" name="pos" value="bottom"><span>下寄せ</span></label>
+    </div>
+  </div>
+</div>
+
+<button class="save-btn" id="saveBtn">保存</button>
+
+<script>
+(function(){
+  const CANVAS_SIZES = {
+    '3:4':[1080,1440],
+    '4:5':[1080,1350],
+    '1:1':[1080,1080],
+  };
+  const BLUR_MARGIN = 80;
+
+  const state = {
+    img: null,        // ImageBitmap
+    ratio: '3:4',
+    bgMode: 'solid',  // 'solid' | 'blur-light' | 'blur-dark'
+    bgColor: '#ffffff',
+    pos: 'center',    // 'center' | 'top' | 'bottom'
+  };
+
+  const $file = document.getElementById('file');
+  const $previewWrap = document.getElementById('previewWrap');
+  const $panel = document.getElementById('panel');
+  const $canvas = document.getElementById('preview');
+  const ctx = $canvas.getContext('2d');
+  const $ratioNote = document.getElementById('ratioNote');
+  const $colorField = document.getElementById('colorField');
+  const $posField = document.getElementById('posField');
+  const $saveBtn = document.getElementById('saveBtn');
+  const $colorPicker = document.getElementById('colorPicker');
+  const $btnWhite = document.getElementById('btnWhite');
+  const $btnBlack = document.getElementById('btnBlack');
+
+  $file.addEventListener('change', async (e) => {
+    const f = e.target.files && e.target.files[0];
+    if(!f) return;
+    if(!f.type || !f.type.startsWith('image/')){
+      alert('画像ファイルを選んでください');
+      $file.value = '';
+      return;
+    }
+    let bmp;
+    try{
+      bmp = await createImageBitmap(f);
+    }catch(err){
+      alert('この画像は読み込めませんでした');
+      $file.value = '';
+      return;
+    }
+    state.img = bmp;
+    $previewWrap.classList.add('on');
+    $panel.classList.add('on');
+    $saveBtn.classList.add('on');
+    updatePosVisibility();
+    render();
+  });
+
+  // ratio
+  document.querySelectorAll('input[name="ratio"]').forEach(r => {
+    r.addEventListener('change', () => {
+      state.ratio = r.value;
+      $ratioNote.style.display = (r.value === '4:5') ? 'block' : 'none';
+      if(state.img) render();
+    });
+  });
+
+  // bg mode
+  document.querySelectorAll('input[name="bgmode"]').forEach(r => {
+    r.addEventListener('change', () => {
+      state.bgMode = r.value;
+      $colorField.style.display = (r.value === 'solid') ? '' : 'none';
+      if(state.img) render();
+    });
+  });
+
+  // color
+  function setColor(c){
+    state.bgColor = c;
+    $btnWhite.classList.toggle('active', c.toLowerCase() === '#ffffff');
+    $btnBlack.classList.toggle('active', c.toLowerCase() === '#000000');
+    $colorPicker.value = c;
+    if(state.img && state.bgMode === 'solid') render();
+  }
+  $btnWhite.addEventListener('click', () => setColor('#ffffff'));
+  $btnBlack.addEventListener('click', () => setColor('#000000'));
+  $colorPicker.addEventListener('input', () => setColor($colorPicker.value));
+
+  // position
+  document.querySelectorAll('input[name="pos"]').forEach(r => {
+    r.addEventListener('change', () => {
+      state.pos = r.value;
+      if(state.img) render();
+    });
+  });
+
+  function updatePosVisibility(){
+    const isLandscape = state.img && state.img.width > state.img.height;
+    $posField.classList.toggle('hidden', !isLandscape);
+    if(!isLandscape){
+      state.pos = 'center';
+      const c = document.querySelector('input[name="pos"][value="center"]');
+      if(c) c.checked = true;
+    }
+  }
+
+  function render(){
+    const img = state.img;
+    if(!img) return;
+    const [cw, ch] = CANVAS_SIZES[state.ratio];
+    $canvas.width = cw;
+    $canvas.height = ch;
+
+    // Background
+    if(state.bgMode === 'solid'){
+      ctx.fillStyle = state.bgColor;
+      ctx.fillRect(0, 0, cw, ch);
+    } else {
+      const M = BLUR_MARGIN;
+      const bgScale = Math.max((cw + M*2) / img.width, (ch + M*2) / img.height);
+      const bgW = img.width * bgScale;
+      const bgH = img.height * bgScale;
+      const bgX = (cw - bgW) / 2;
+      const bgY = (ch - bgH) / 2;
+
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(0, 0, cw, ch);
+      ctx.filter = state.bgMode === 'blur-light'
+        ? 'blur(40px) brightness(1.5)'
+        : 'blur(40px) brightness(0.55)';
+      ctx.drawImage(img, bgX, bgY, bgW, bgH);
+      ctx.filter = 'none';
+    }
+
+    // Main image (contain)
+    const scale = Math.min(cw / img.width, ch / img.height);
+    const drawW = img.width * scale;
+    const drawH = img.height * scale;
+    const x = (cw - drawW) / 2;
+    let y;
+    if(img.width > img.height){
+      if(state.pos === 'top') y = 0;
+      else if(state.pos === 'bottom') y = ch - drawH;
+      else y = (ch - drawH) / 2;
+    } else {
+      y = (ch - drawH) / 2;
+    }
+    ctx.drawImage(img, x, y, drawW, drawH);
+  }
+
+  // Save
+  function ts(){
+    const d = new Date();
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`;
+  }
+
+  $saveBtn.addEventListener('click', () => {
+    if(!state.img) return;
+    $saveBtn.disabled = true;
+    $canvas.toBlob(async (blob) => {
+      if(!blob){
+        alert('書き出しに失敗しました。もう一度試してください');
+        $saveBtn.disabled = false;
+        return;
+      }
+      const filename = `photofit_${ts()}.jpg`;
+      const file = new File([blob], filename, { type: 'image/jpeg' });
+
+      try{
+        if(navigator.canShare && navigator.canShare({ files: [file] })){
+          await navigator.share({ files: [file] });
+          $saveBtn.disabled = false;
+          return;
+        }
+      }catch(err){
+        // AbortError等: フォールバックに進む
+        if(err && err.name === 'AbortError'){
+          $saveBtn.disabled = false;
+          return;
+        }
+      }
+
+      // download fallback
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      $saveBtn.disabled = false;
+    }, 'image/jpeg', 0.92);
+  });
+})();
+</script>
+</body>
+</html>
