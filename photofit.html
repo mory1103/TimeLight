@@ -121,6 +121,23 @@ input[type="color"]::-webkit-color-swatch{border:none;border-radius:6px}
   };
   const BLUR_MARGIN = 80;
 
+  // ctx.filter が実際に blur を適用できるかピクセル検査（iOS Safari <18 対策）
+  const CTX_FILTER_OK = (() => {
+    try {
+      const c = document.createElement('canvas');
+      c.width = 20; c.height = 20;
+      const tc = c.getContext('2d');
+      tc.fillStyle = '#fff';
+      tc.fillRect(0, 0, 20, 20);
+      tc.filter = 'blur(4px)';
+      tc.fillStyle = '#000';
+      tc.fillRect(9, 9, 2, 2);
+      tc.filter = 'none';
+      const px = tc.getImageData(5, 5, 1, 1).data;
+      return px[0] < 240;
+    } catch(e) { return false; }
+  })();
+
   const state = {
     img: null,        // ImageBitmap
     imgCanvas: null,  // HTMLCanvasElement copy (avoids iOS Safari ctx.filter + ImageBitmap glitch)
@@ -252,11 +269,32 @@ input[type="color"]::-webkit-color-swatch{border:none;border-radius:6px}
 
       ctx.fillStyle = '#fff';
       ctx.fillRect(0, 0, cw, ch);
-      ctx.filter = state.bgMode === 'blur-light'
-        ? 'blur(40px) brightness(1.5)'
-        : 'blur(40px) brightness(0.55)';
-      ctx.drawImage(state.imgCanvas, bgX, bgY, bgW, bgH);
-      ctx.filter = 'none';
+
+      if (CTX_FILTER_OK) {
+        ctx.filter = state.bgMode === 'blur-light'
+          ? 'blur(40px) brightness(1.5)'
+          : 'blur(40px) brightness(0.55)';
+        ctx.drawImage(state.imgCanvas, bgX, bgY, bgW, bgH);
+        ctx.filter = 'none';
+      } else {
+        // Fallback: downscale→upscale で 40px blur を近似 + 半透明オーバーレイで brightness を近似
+        const smallW = Math.max(2, Math.round(bgW / 40));
+        const smallH = Math.max(2, Math.round(bgH / 40));
+        const tmp = document.createElement('canvas');
+        tmp.width = smallW;
+        tmp.height = smallH;
+        const tctx = tmp.getContext('2d');
+        tctx.imageSmoothingEnabled = true;
+        tctx.imageSmoothingQuality = 'high';
+        tctx.drawImage(state.imgCanvas, 0, 0, smallW, smallH);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(tmp, bgX, bgY, bgW, bgH);
+        ctx.fillStyle = state.bgMode === 'blur-light'
+          ? 'rgba(255,255,255,0.35)'
+          : 'rgba(0,0,0,0.45)';
+        ctx.fillRect(0, 0, cw, ch);
+      }
     }
 
     // Main image (contain)
