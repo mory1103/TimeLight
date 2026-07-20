@@ -1,0 +1,489 @@
+<style>
+  :root{
+    /* --- 構造色（ウォームペーパー＋スチールブルーの製図インク） --- */
+    --ground:#f4f2ee;
+    --card:#ffffff;
+    --sunken:#f7f5f0;
+    --border:#e6e1d7;
+    --border-strong:#d7d1c4;
+    --ink:#26231e;
+    --ink-2:#6c655a;
+    --ink-3:#9a9488;
+    --steel:#3a5f82;
+    --steel-soft:#e9f0f6;
+    --steel-line:#c4d6e5;
+    /* --- 4パネルの識別色（パネルを指すときだけ使う） --- */
+    --wp:#3b6fa0;   --wp-soft:#e9f1f8;
+    --hr:#3f8f6b;   --hr-soft:#e7f3ec;
+    --dz:#6b5aa8;   --dz-soft:#efecf8;
+    --cs:#b0803a;   --cs-soft:#f6efe1;
+    --shadow:0 1px 2px rgba(40,35,28,.05),0 6px 20px rgba(40,35,28,.05);
+    --r:14px; --r-sm:9px;
+    --sans:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI",system-ui,"Segoe UI",sans-serif;
+    --mono:ui-monospace,"SFMono-Regular","SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --ground:#1a1917; --card:#232019; --sunken:#1e1c17;
+      --border:#34302a; --border-strong:#413c34;
+      --ink:#ece7dd; --ink-2:#a69f92; --ink-3:#726b5f;
+      --steel:#84acd4; --steel-soft:#212a33; --steel-line:#39505f;
+      --wp:#6fa0cd; --wp-soft:#1f2732;
+      --hr:#6cc79a; --hr-soft:#1c2922;
+      --dz:#a394d8; --dz-soft:#25222f;
+      --cs:#d3a35c; --cs-soft:#2c2618;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.28);
+    }
+  }
+  :root[data-theme="light"]{
+    --ground:#f4f2ee; --card:#ffffff; --sunken:#f7f5f0;
+    --border:#e6e1d7; --border-strong:#d7d1c4;
+    --ink:#26231e; --ink-2:#6c655a; --ink-3:#9a9488;
+    --steel:#3a5f82; --steel-soft:#e9f0f6; --steel-line:#c4d6e5;
+    --wp:#3b6fa0; --wp-soft:#e9f1f8; --hr:#3f8f6b; --hr-soft:#e7f3ec;
+    --dz:#6b5aa8; --dz-soft:#efecf8; --cs:#b0803a; --cs-soft:#f6efe1;
+    --shadow:0 1px 2px rgba(40,35,28,.05),0 6px 20px rgba(40,35,28,.05);
+  }
+  :root[data-theme="dark"]{
+    --ground:#1a1917; --card:#232019; --sunken:#1e1c17;
+    --border:#34302a; --border-strong:#413c34;
+    --ink:#ece7dd; --ink-2:#a69f92; --ink-3:#726b5f;
+    --steel:#84acd4; --steel-soft:#212a33; --steel-line:#39505f;
+    --wp:#6fa0cd; --wp-soft:#1f2732; --hr:#6cc79a; --hr-soft:#1c2922;
+    --dz:#a394d8; --dz-soft:#25222f; --cs:#d3a35c; --cs-soft:#2c2618;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.28);
+  }
+
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  .page{
+    background:var(--ground);color:var(--ink);
+    font-family:var(--sans);line-height:1.65;
+    padding:clamp(20px,5vw,72px) clamp(16px,4vw,40px) 96px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1000px;margin:0 auto;}
+
+  .eyebrow{
+    font-family:var(--mono);font-size:12px;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--steel);margin:0 0 14px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .eyebrow::before{content:"";width:26px;height:1px;background:var(--steel);opacity:.6;}
+
+  h1{
+    font-size:clamp(28px,5.5vw,46px);line-height:1.12;margin:0;
+    letter-spacing:-.015em;font-weight:700;text-wrap:balance;
+  }
+  .lede{
+    color:var(--ink-2);font-size:clamp(15px,2.2vw,18px);
+    max-width:60ch;margin:18px 0 0;text-wrap:pretty;
+  }
+  .meta{
+    display:flex;flex-wrap:wrap;gap:8px;margin-top:26px;
+  }
+  .chip{
+    font-family:var(--mono);font-size:12px;color:var(--ink-2);
+    background:var(--card);border:1px solid var(--border);
+    padding:5px 11px;border-radius:100px;
+  }
+  .chip b{color:var(--steel);font-weight:600;}
+
+  /* --- セクション見出し --- */
+  section{margin-top:clamp(48px,8vw,84px);}
+  .sec-head{margin-bottom:26px;}
+  .sec-num{
+    font-family:var(--mono);font-size:12px;color:var(--ink-3);
+    letter-spacing:.1em;
+  }
+  h2{
+    font-size:clamp(20px,3vw,26px);margin:6px 0 0;font-weight:700;
+    letter-spacing:-.01em;text-wrap:balance;
+  }
+  .sec-note{color:var(--ink-2);margin:10px 0 0;max-width:64ch;font-size:15px;}
+
+  /* --- データフロー（横並び→モバイルで縦） --- */
+  .flow{
+    display:flex;align-items:stretch;gap:0;flex-wrap:wrap;
+    background:var(--card);border:1px solid var(--border);
+    border-radius:var(--r);padding:clamp(16px,3vw,26px);
+    box-shadow:var(--shadow);
+  }
+  .node{
+    flex:1 1 150px;min-width:0;
+    background:var(--sunken);border:1px solid var(--border);
+    border-radius:var(--r-sm);padding:16px 14px;text-align:center;
+  }
+  .node .role{
+    font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;color:var(--ink-3);display:block;margin-bottom:7px;
+  }
+  .node .name{font-weight:650;font-size:15px;display:block;}
+  .node .sub{font-size:12.5px;color:var(--ink-2);display:block;margin-top:4px;}
+  .node.hub{border-color:var(--steel-line);background:var(--steel-soft);}
+  .node.hub .name{color:var(--steel);}
+
+  .arrow{
+    flex:0 0 auto;display:flex;flex-direction:column;align-items:center;
+    justify-content:center;gap:4px;padding:0 6px;min-width:64px;
+  }
+  .arrow .lbl{
+    font-family:var(--mono);font-size:10.5px;color:var(--ink-3);
+    text-align:center;line-height:1.35;
+  }
+  .arrow::after{content:"→";color:var(--steel);font-size:19px;line-height:1;}
+  @media (max-width:640px){
+    .flow{flex-direction:column;}
+    .arrow{min-width:0;padding:9px 0;}
+    .arrow::after{content:"↓";}
+    .node{flex:1 1 auto;}
+  }
+
+  /* --- 4パネルグリッド --- */
+  .panels{
+    display:grid;grid-template-columns:repeat(2,1fr);gap:16px;
+  }
+  @media (max-width:640px){.panels{grid-template-columns:1fr;}}
+  .panel{
+    position:relative;background:var(--card);border:1px solid var(--border);
+    border-radius:var(--r);padding:18px 20px 20px;box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+  .panel::before{
+    content:"";position:absolute;left:0;top:0;bottom:0;width:4px;
+    background:var(--pc);
+  }
+  .panel .pid{
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+    color:var(--pc);text-transform:lowercase;
+  }
+  .panel h3{margin:3px 0 0;font-size:16px;font-weight:700;}
+  .panel .instr{color:var(--ink-2);font-size:13.5px;margin:9px 0 0;line-height:1.55;}
+  .panel .swatch{
+    display:inline-block;margin-top:13px;font-family:var(--mono);font-size:11px;
+    color:var(--pc);background:var(--pc-soft);border-radius:100px;padding:3px 10px;
+  }
+  .p-wp{--pc:var(--wp);--pc-soft:var(--wp-soft);}
+  .p-hr{--pc:var(--hr);--pc-soft:var(--hr-soft);}
+  .p-dz{--pc:var(--dz);--pc-soft:var(--dz-soft);}
+  .p-cs{--pc:var(--cs);--pc-soft:var(--cs-soft);}
+
+  /* --- コンポーネントツリー --- */
+  .tree{
+    background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+    padding:clamp(18px,3vw,28px);box-shadow:var(--shadow);
+    font-family:var(--mono);font-size:13.5px;overflow-x:auto;
+  }
+  .tree .row{display:flex;gap:12px;align-items:baseline;padding:3px 0;white-space:nowrap;}
+  .tree .glyph{color:var(--ink-3);}
+  .tree .comp{color:var(--ink);font-weight:600;}
+  .tree .desc{color:var(--ink-2);font-family:var(--sans);font-size:13px;white-space:normal;}
+  .tree .lvl1{padding-left:0;}
+  .tree .lvl2{padding-left:22px;}
+  .tree .lvl3{padding-left:44px;}
+  .dot{display:inline-block;width:8px;height:8px;border-radius:2px;flex:0 0 auto;position:relative;top:1px;}
+
+  /* --- 状態モデル 2カラム --- */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media (max-width:640px){.cols{grid-template-columns:1fr;}}
+  .statecard{
+    background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+    padding:20px;box-shadow:var(--shadow);
+  }
+  .statecard .tag{
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    display:inline-flex;align-items:center;gap:7px;
+  }
+  .statecard.keep .tag{color:var(--hr);}
+  .statecard.drop .tag{color:var(--ink-3);}
+  .statecard .tag::before{content:"";width:7px;height:7px;border-radius:50%;background:currentColor;}
+  .statecard h4{margin:12px 0 4px;font-size:15px;}
+  .statecard .k{font-family:var(--mono);font-size:13px;color:var(--steel);font-weight:600;}
+  .statecard p{margin:2px 0 0;color:var(--ink-2);font-size:13.5px;}
+  .statecard .item{padding:9px 0;border-top:1px solid var(--border);}
+  .statecard .item:first-of-type{border-top:0;}
+
+  /* --- 更新シーケンス --- */
+  .steps{display:flex;flex-direction:column;gap:2px;}
+  .step{
+    display:grid;grid-template-columns:auto 1fr;gap:18px;
+    padding:16px 4px;border-top:1px solid var(--border);
+  }
+  .step:first-child{border-top:0;}
+  .step .n{
+    font-family:var(--mono);font-size:13px;color:var(--steel);font-weight:600;
+    background:var(--steel-soft);border-radius:8px;width:30px;height:30px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .step .body{min-width:0;}
+  .step .t{font-weight:650;font-size:15px;}
+  .step .d{color:var(--ink-2);font-size:13.5px;margin-top:3px;}
+  .step .d code{font-family:var(--mono);font-size:12.5px;background:var(--sunken);
+    padding:1px 6px;border-radius:5px;color:var(--ink);}
+
+  /* --- コード（ストレージスキーマ） --- */
+  .code{
+    background:var(--sunken);border:1px solid var(--border);border-radius:var(--r);
+    padding:20px clamp(16px,3vw,24px);overflow-x:auto;box-shadow:var(--shadow);
+  }
+  .code pre{margin:0;font-family:var(--mono);font-size:13px;line-height:1.75;color:var(--ink);}
+  .code .key{color:var(--steel);}
+  .code .str{color:var(--hr);}
+  .code .cm{color:var(--ink-3);}
+  .code .pk{color:var(--pc,var(--ink));}
+
+  .timing{
+    margin-top:16px;display:grid;grid-template-columns:auto 1fr;gap:0 20px;
+    background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+    padding:6px clamp(16px,3vw,22px);box-shadow:var(--shadow);
+  }
+  .timing .when{font-family:var(--mono);font-size:12.5px;color:var(--steel);
+    padding:12px 0;border-top:1px solid var(--border);align-self:start;}
+  .timing .what{color:var(--ink-2);font-size:13.5px;padding:12px 0;border-top:1px solid var(--border);}
+  .timing .when:first-of-type,.timing .what:nth-of-type(2){border-top:0;}
+  @media (max-width:560px){
+    .timing{grid-template-columns:1fr;padding:4px 18px;}
+    .timing .when{padding:12px 0 2px;border-top:1px solid var(--border);}
+    .timing .what{padding:0 0 12px;border-top:0;}
+  }
+
+  /* --- 制約チップ --- */
+  .rules{display:flex;flex-wrap:wrap;gap:10px;}
+  .rule{
+    background:var(--card);border:1px solid var(--border);border-radius:var(--r-sm);
+    padding:12px 15px;font-size:13.5px;color:var(--ink-2);flex:1 1 240px;
+    box-shadow:var(--shadow);
+  }
+  .rule b{color:var(--ink);font-weight:650;display:block;margin-bottom:2px;font-size:14px;}
+  .rule .no{color:var(--cs);font-family:var(--mono);font-size:12px;}
+
+  footer{
+    margin-top:72px;padding-top:22px;border-top:1px solid var(--border);
+    color:var(--ink-3);font-family:var(--mono);font-size:12px;
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;
+  }
+</style>
+
+<div class="page">
+<div class="wrap">
+
+  <p class="eyebrow">System Architecture</p>
+  <h1>仕事情報ダッシュボード<br>アーキテクチャ</h1>
+  <p class="lede">開いてボタンを押せば、トピック別の最新情報がまとまって読める——その1画面が、内部でどの部品と繋がって動いているかの見取り図です。</p>
+  <div class="meta">
+    <span class="chip"><b>単一ファイル</b>&nbsp;React コンポーネント</span>
+    <span class="chip"><b>取得</b>&nbsp;Claude API + Web検索</span>
+    <span class="chip"><b>保存</b>&nbsp;window.storage</span>
+    <span class="chip"><b>枠</b>&nbsp;4パネル独立</span>
+  </div>
+
+  <!-- 1. データの流れ -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">01</span>
+      <h2>データの流れ</h2>
+      <p class="sec-note">情報の入手先は Claude API だけ、状態の保存先は window.storage だけ。外部サイトへの直接アクセスはしません（CORSで失敗するため）。</p>
+    </div>
+    <div class="flow">
+      <div class="node">
+        <span class="role">Person</span>
+        <span class="name">ユーザー</span>
+        <span class="sub">更新ボタンを押す</span>
+      </div>
+      <div class="arrow"><span class="lbl">検索<br>リクエスト</span></div>
+      <div class="node hub">
+        <span class="role">React</span>
+        <span class="name">ダッシュボード</span>
+        <span class="sub">状態を一括管理</span>
+      </div>
+      <div class="arrow"><span class="lbl">Web検索<br>付き呼出</span></div>
+      <div class="node">
+        <span class="role">External</span>
+        <span class="name">Claude API</span>
+        <span class="sub">記事のJSONを返す</span>
+      </div>
+    </div>
+    <div class="flow" style="margin-top:14px;">
+      <div class="node hub">
+        <span class="role">React</span>
+        <span class="name">ダッシュボード</span>
+        <span class="sub">記事リストを描画</span>
+      </div>
+      <div class="arrow"><span class="lbl">状態を<br>保存 / 読込</span></div>
+      <div class="node">
+        <span class="role">Storage</span>
+        <span class="name">window.storage</span>
+        <span class="sub">dashboard-state</span>
+      </div>
+      <div class="arrow"><span class="lbl">起動時に<br>即時表示</span></div>
+      <div class="node">
+        <span class="role">Person</span>
+        <span class="name">ユーザー</span>
+        <span class="sub">最新情報を読む</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. 4つのパネル -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">02</span>
+      <h2>4つのパネル</h2>
+      <p class="sec-note">各枠は独立して更新できます。左端のカラーバー1本だけで色分けし、それ以外の装飾色は使いません。色はこのページでも「どのパネルの話か」を示すためだけに使っています。</p>
+    </div>
+    <div class="panels">
+      <div class="panel p-wp">
+        <span class="pid">wordpress</span>
+        <h3>WordPress</h3>
+        <p class="instr">コアアップデート、主要プラグインの脆弱性・セキュリティ情報の最新ニュース。</p>
+        <span class="swatch">blue / 青系</span>
+      </div>
+      <div class="panel p-hr">
+        <span class="pid">hrtech</span>
+        <h3>HRテック業界</h3>
+        <p class="instr">日本国内のHRテック・HR SaaS企業のニュース（資金調達・新機能・業界動向）。</p>
+        <span class="swatch">emerald / 緑系</span>
+      </div>
+      <div class="panel p-dz">
+        <span class="pid">design</span>
+        <h3>Webデザイン</h3>
+        <p class="instr">UIデザインのトレンド、参考サイト事例、Figmaのアップデート情報。</p>
+        <span class="swatch">violet / 紫系</span>
+      </div>
+      <div class="panel p-cs">
+        <span class="pid">custom</span>
+        <h3>自由枠</h3>
+        <p class="instr">ユーザーが入力したキーワードの最新情報。未設定なら更新ボタンは無効。</p>
+        <span class="swatch">amber / アンバー系</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. コンポーネント構成 -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">03</span>
+      <h2>コンポーネント構成</h2>
+      <p class="sec-note">親だけが状態を持ち、子は props で受け取って表示するだけ——という一方向の流れです。</p>
+    </div>
+    <div class="tree">
+      <div class="row lvl1"><span class="glyph">▸</span><span class="comp">JobInfoDashboard</span><span class="desc">全状態を持つ親。API呼び出し・保存・既読管理をここで行う</span></div>
+      <div class="row lvl2"><span class="glyph">├</span><span class="dot" style="background:var(--wp)"></span><span class="comp">Panel</span><span class="desc">WordPress — ヘッダー・更新ボタン・記事リスト</span></div>
+      <div class="row lvl2"><span class="glyph">├</span><span class="dot" style="background:var(--hr)"></span><span class="comp">Panel</span><span class="desc">HRテック業界</span></div>
+      <div class="row lvl2"><span class="glyph">├</span><span class="dot" style="background:var(--dz)"></span><span class="comp">Panel</span><span class="desc">Webデザイン</span></div>
+      <div class="row lvl2"><span class="glyph">└</span><span class="dot" style="background:var(--cs)"></span><span class="comp">Panel</span><span class="desc">自由枠 — キーワード入力欄＋保存ボタンを追加で持つ</span></div>
+      <div class="row lvl3"><span class="glyph">└</span><span class="comp">Article × 記事件数</span><span class="desc">タイトル(リンク)・媒体名・要約・既読チェック</span></div>
+      <div class="row lvl3"><span class="glyph">┄</span><span class="comp">Spinner</span><span class="desc">検索中に出る控えめな回転表示</span></div>
+    </div>
+  </section>
+
+  <!-- 4. 状態モデル -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">04</span>
+      <h2>状態モデル</h2>
+      <p class="sec-note">「保存する状態」と「一時的な表示状態」を分けているのが要点です。ローディングとエラーは枠ごとに独立しているので、1枠が更新中でも他の枠は操作できます。</p>
+    </div>
+    <div class="cols">
+      <div class="statecard keep">
+        <span class="tag">Persisted — 保存する</span>
+        <div class="item">
+          <h4><span class="k">panels</span></h4>
+          <p>各枠の記事リストと更新日時。次回もそのまま表示される。</p>
+        </div>
+        <div class="item">
+          <h4><span class="k">customKeyword</span></h4>
+          <p>自由枠のキーワード。保存ボタンで永続化。</p>
+        </div>
+      </div>
+      <div class="statecard drop">
+        <span class="tag">Ephemeral — 保存しない</span>
+        <div class="item">
+          <h4><span class="k">loading</span></h4>
+          <p>枠ごとの「検索中」フラグ。押した枠だけ true。</p>
+        </div>
+        <div class="item">
+          <h4><span class="k">error</span></h4>
+          <p>枠ごとの失敗フラグ。1枠のエラーが他枠に波及しない。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. 更新シーケンス -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">05</span>
+      <h2>更新シーケンス</h2>
+      <p class="sec-note">更新ボタンを押してから画面が書き換わるまで。この順で処理が進みます。</p>
+    </div>
+    <div class="steps">
+      <div class="step"><span class="n">1</span><div class="body"><div class="t">押した枠だけローディング開始</div><div class="d"><code>loading[panelId] = true</code> にして「検索中… 10〜30秒かかります」を表示。ボタンは無効化し多重リクエストを防ぐ。</div></div></div>
+      <div class="step"><span class="n">2</span><div class="body"><div class="t">Claude API を Web検索付きで呼ぶ</div><div class="d">検索指示を埋め込んだプロンプトを送信。APIキーは環境側で処理されるため渡さない。</div></div></div>
+      <div class="step"><span class="n">3</span><div class="body"><div class="t">テキストブロックを結合してパース</div><div class="d"><code>content</code> から <code>type==="text"</code> のブロックだけを結合 → コードフェンスを除去 → <code>JSON.parse</code>。</div></div></div>
+      <div class="step"><span class="n">4</span><div class="body"><div class="t">既読状態を引き継ぐ</div><div class="d">前回と同じ URL の記事があれば、その既読フラグを新しい記事に引き継ぐ。</div></div></div>
+      <div class="step"><span class="n">5</span><div class="body"><div class="t">記事リストを置き換える</div><div class="d">追記ではなく置き換え。更新日時（<code>updatedAt</code>）を記録する。</div></div></div>
+      <div class="step"><span class="n">6</span><div class="body"><div class="t">window.storage に保存</div><div class="d">全状態を1キーにまとめて書き込む。</div></div></div>
+      <div class="step"><span class="n">7</span><div class="body"><div class="t">ローディング終了・再描画</div><div class="d">失敗時は「取得に失敗しました。もう一度お試しください」を表示し、前回の記事は消さない。</div></div></div>
+    </div>
+  </section>
+
+  <!-- 6. 永続化 -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">06</span>
+      <h2>永続化（window.storage）</h2>
+      <p class="sec-note">キーは <b>dashboard-state の1つだけ</b>。全状態をこの1キーにまとめて保存します（パネルごとに分けない＝レート制限対策）。</p>
+    </div>
+    <div class="code">
+<pre><span class="cm">// 1キーに全状態をJSON文字列で保存する</span>
+{
+  <span class="key">"panels"</span>: {
+    <span class="key">"wordpress"</span>: {
+      <span class="key">"updatedAt"</span>: <span class="str">"2026-07-06T14:30:00.000Z"</span>,
+      <span class="key">"items"</span>: [
+        { <span class="key">"title"</span>: <span class="str">"…"</span>, <span class="key">"summary"</span>: <span class="str">"…"</span>,
+          <span class="key">"url"</span>: <span class="str">"…"</span>, <span class="key">"source"</span>: <span class="str">"…"</span>, <span class="key">"read"</span>: false }
+      ]
+    },
+    <span class="key">"hrtech"</span>:  { … },
+    <span class="key">"design"</span>:  { … },
+    <span class="key">"custom"</span>:  { … }
+  },
+  <span class="key">"customKeyword"</span>: <span class="str">"設定したキーワード"</span>
+}</pre>
+    </div>
+    <div class="timing">
+      <div class="when">起動時</div>
+      <div class="what"><code style="font-family:var(--mono)">storage.get</code> で読込。初回はキーが無くエラーを投げるので try/catch で初期状態にフォールバック。</div>
+      <div class="when">更新成功時</div>
+      <div class="what">記事リストと更新日時を保存。</div>
+      <div class="when">既読チェック切替時</div>
+      <div class="what">即座に保存。再訪後も既読が保持される。</div>
+      <div class="when">キーワード保存時</div>
+      <div class="what">自由枠のキーワードを保存。</div>
+    </div>
+  </section>
+
+  <!-- 7. 環境の制約 -->
+  <section>
+    <div class="sec-head">
+      <span class="sec-num">07</span>
+      <h2>設計上の約束（Artifact環境の制約）</h2>
+      <p class="sec-note">この4つを守ることが、Artifact 環境で確実に動く条件です。</p>
+    </div>
+    <div class="rules">
+      <div class="rule"><b>単一ファイルの React</b>default export・必須props なしで完結させる。</div>
+      <div class="rule"><b>Tailwind コアのみ</b>任意値 <span class="no">[...]</span> は使わない。</div>
+      <div class="rule"><b>ブラウザ保存API 不使用</b><span class="no">localStorage / sessionStorage</span> は使わず window.storage だけ。</div>
+      <div class="rule"><b>フォームタグ 不使用</b><span class="no">&lt;form&gt;</span> は使わず onClick / onChange で処理。</div>
+    </div>
+  </section>
+
+  <footer>
+    <span>JobInfoDashboard.jsx</span>
+    <span>「静かな作業机」— quiet desk</span>
+  </footer>
+
+</div>
+</div>

@@ -1,0 +1,345 @@
+<style>
+  :root{
+    --ground:#f4f2ee; --card:#ffffff; --sunken:#f7f5f0;
+    --border:#e7e2d8; --border-strong:#d8d2c6;
+    --ink:#26231e; --ink-2:#6c655a; --ink-3:#a39d90;
+    --steel:#3a5f82;
+    --wp:#3b6fa0; --wp-soft:#e9f1f8;
+    --hr:#3f8f6b; --hr-soft:#e7f3ec;
+    --dz:#6b5aa8; --dz-soft:#efecf8;
+    --cs:#b0803a; --cs-soft:#f6efe1;
+    --shadow:0 1px 2px rgba(40,35,28,.05),0 5px 16px rgba(40,35,28,.045);
+    --r:14px; --r-sm:9px;
+    --sans:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic UI",system-ui,"Segoe UI",sans-serif;
+    --mono:ui-monospace,"SFMono-Regular","SF Mono",Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --ground:#1a1917; --card:#232019; --sunken:#1e1c17;
+      --border:#35312a; --border-strong:#433d34;
+      --ink:#ece7dd; --ink-2:#a69f92; --ink-3:#726b5f;
+      --steel:#84acd4;
+      --wp:#6fa0cd; --wp-soft:#1f2732;
+      --hr:#6cc79a; --hr-soft:#1c2922;
+      --dz:#a394d8; --dz-soft:#25222f;
+      --cs:#d3a35c; --cs-soft:#2c2618;
+      --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);
+    }
+  }
+  :root[data-theme="light"]{
+    --ground:#f4f2ee; --card:#ffffff; --sunken:#f7f5f0;
+    --border:#e7e2d8; --border-strong:#d8d2c6;
+    --ink:#26231e; --ink-2:#6c655a; --ink-3:#a39d90; --steel:#3a5f82;
+    --wp:#3b6fa0; --wp-soft:#e9f1f8; --hr:#3f8f6b; --hr-soft:#e7f3ec;
+    --dz:#6b5aa8; --dz-soft:#efecf8; --cs:#b0803a; --cs-soft:#f6efe1;
+    --shadow:0 1px 2px rgba(40,35,28,.05),0 5px 16px rgba(40,35,28,.045);
+  }
+  :root[data-theme="dark"]{
+    --ground:#1a1917; --card:#232019; --sunken:#1e1c17;
+    --border:#35312a; --border-strong:#433d34;
+    --ink:#ece7dd; --ink-2:#a69f92; --ink-3:#726b5f; --steel:#84acd4;
+    --wp:#6fa0cd; --wp-soft:#1f2732; --hr:#6cc79a; --hr-soft:#1c2922;
+    --dz:#a394d8; --dz-soft:#25222f; --cs:#d3a35c; --cs-soft:#2c2618;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 18px rgba(0,0,0,.25);
+  }
+
+  *{box-sizing:border-box;}
+  body{margin:0;}
+  .app{
+    background:var(--ground);color:var(--ink);font-family:var(--sans);
+    line-height:1.6;min-height:100vh;
+    padding:clamp(16px,4vw,32px) clamp(14px,4vw,28px) 64px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1000px;margin:0 auto;}
+
+  header .kicker{
+    font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--steel);margin:0 0 6px;
+  }
+  header h1{font-size:clamp(19px,3.4vw,24px);margin:0;font-weight:700;letter-spacing:-.01em;}
+  header p{color:var(--ink-2);font-size:13.5px;margin:6px 0 0;}
+  .demo-note{
+    margin-top:14px;font-size:12px;color:var(--ink-2);background:var(--card);
+    border:1px solid var(--border);border-radius:100px;padding:6px 13px;display:inline-flex;
+    gap:8px;align-items:center;font-family:var(--mono);
+  }
+  .demo-note::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--cs);}
+
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:22px;}
+  @media (max-width:768px){.grid{grid-template-columns:1fr;}}
+
+  .panel{
+    display:flex;background:var(--card);border:1px solid var(--border);
+    border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;
+  }
+  .bar{width:4px;flex:0 0 4px;}
+  .panel.wp .bar{background:var(--wp);}  .panel.hr .bar{background:var(--hr);}
+  .panel.dz .bar{background:var(--dz);}  .panel.cs .bar{background:var(--cs);}
+  .body{flex:1;min-width:0;padding:16px 18px 18px;display:flex;flex-direction:column;}
+
+  .head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+  .head h2{font-size:15.5px;margin:0;font-weight:700;}
+  .stamp{font-family:var(--mono);font-size:11.5px;color:var(--ink-3);margin-top:3px;}
+  .btn{
+    flex:0 0 auto;border:1px solid;border-radius:var(--r-sm);
+    padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;
+    font-family:var(--sans);background:transparent;transition:opacity .15s,background .15s;
+  }
+  .panel.wp .btn{color:var(--wp);border-color:var(--wp);background:var(--wp-soft);}
+  .panel.hr .btn{color:var(--hr);border-color:var(--hr);background:var(--hr-soft);}
+  .panel.dz .btn{color:var(--dz);border-color:var(--dz);background:var(--dz-soft);}
+  .panel.cs .btn{color:var(--cs);border-color:var(--cs);background:var(--cs-soft);}
+  .btn:hover:not(:disabled){opacity:.78;}
+  .btn:disabled{color:var(--ink-3);border-color:var(--border);background:var(--sunken);cursor:not-allowed;}
+  .btn:focus-visible{outline:2px solid var(--steel);outline-offset:2px;}
+
+  .kwrow{display:flex;gap:8px;margin-top:12px;}
+  .kwrow input{
+    flex:1;min-width:0;background:var(--sunken);border:1px solid var(--border);
+    border-radius:var(--r-sm);padding:7px 11px;font-size:13.5px;color:var(--ink);font-family:var(--sans);
+  }
+  .kwrow input:focus{outline:none;border-color:var(--cs);}
+  .kwrow .save{
+    flex:0 0 auto;border:1px solid var(--cs);background:var(--cs-soft);color:var(--cs);
+    border-radius:var(--r-sm);padding:7px 13px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:var(--sans);
+  }
+  .kwrow .save:hover{opacity:.78;}
+  .kwrow .save:focus-visible{outline:2px solid var(--steel);outline-offset:2px;}
+
+  .content{margin-top:12px;flex:1;}
+  .loading{display:flex;align-items:center;gap:9px;color:var(--ink-3);font-size:12.5px;padding:14px 0;}
+  .spin{
+    width:15px;height:15px;border-radius:50%;border:2px solid var(--border-strong);
+    border-top-color:var(--ink-3);animation:sp .7s linear infinite;flex:0 0 auto;
+  }
+  @keyframes sp{to{transform:rotate(360deg);}}
+  @media (prefers-reduced-motion:reduce){.spin{animation:none;}}
+
+  .empty{color:var(--ink-3);font-size:12.5px;padding:14px 0;}
+  .err{
+    color:var(--ink-2);font-size:12.5px;background:var(--sunken);border:1px solid var(--border);
+    border-radius:var(--r-sm);padding:9px 12px;margin-bottom:8px;
+  }
+
+  ul.arts{list-style:none;margin:0;padding:0;}
+  ul.arts li{display:flex;gap:9px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--border);}
+  ul.arts li:first-child{border-top:0;}
+  ul.arts input[type=checkbox]{margin-top:3px;width:15px;height:15px;flex:0 0 auto;accent-color:var(--ink-3);cursor:pointer;}
+  .art{min-width:0;flex:1;}
+  .art a{
+    font-size:13.5px;font-weight:650;line-height:1.4;color:var(--ink);text-decoration:none;
+    display:block;word-break:break-word;
+  }
+  .art a:hover{color:var(--steel);text-decoration:underline;}
+  .art .src{font-size:11.5px;color:var(--ink-3);margin-top:2px;}
+  .art .sum{font-size:12.5px;color:var(--ink-2);margin-top:4px;line-height:1.55;}
+  li.read .art a{color:var(--ink-3);font-weight:600;}
+  li.read .art .sum{color:var(--ink-3);}
+
+  footer{
+    margin-top:40px;text-align:center;color:var(--ink-3);
+    font-family:var(--mono);font-size:11px;
+  }
+</style>
+
+<div class="app">
+<div class="wrap">
+  <header>
+    <p class="kicker">Interactive Prototype</p>
+    <h1>仕事情報ダッシュボード</h1>
+    <p>気になるトピックの最新情報をまとめて確認できます。</p>
+    <span class="demo-note">プロトタイプ — サンプルデータで動作（実際の検索・保存は行いません）</span>
+  </header>
+
+  <div class="grid" id="grid"></div>
+
+  <footer>「静かな作業机」— 更新・既読チェック・自由枠キーワードが実際に動きます</footer>
+</div>
+</div>
+
+<script>
+// ============================================================
+// プロトタイプ用のデータと挙動
+//  - 本物の JobInfoDashboard.jsx の UI と操作感を再現するモック
+//  - API / window.storage は使わず、すべてメモリ内で動く
+// ============================================================
+
+// 各パネルの定義（本物の PANELS と同じ4枠）
+const PANELS = [
+  { id:"wordpress", cls:"wp", name:"WordPress" },
+  { id:"hrtech",    cls:"hr", name:"HRテック業界" },
+  { id:"design",    cls:"dz", name:"Webデザイン" },
+  { id:"custom",    cls:"cs", name:"自由枠" },
+];
+
+// 「更新」で返ってくる想定のサンプル記事（実データではありません）
+const SAMPLES = {
+  wordpress:[
+    {title:"WordPress 6.9「Rollins」リリース、ブロックエディタの操作性を改善",summary:"サイトエディタの応答性とデータビュー機能が強化。既存テーマへの影響は小さく、更新が推奨されています。",url:"https://example.com/wp-69",source:"WP Tavern（サンプル）"},
+    {title:"人気キャッシュプラグインに権限昇格の脆弱性、早急な更新を推奨",summary:"認証なしで管理者権限を取得できる恐れ。修正版が公開済みで、対象サイトは即時アップデートすべきとされています。",url:"https://example.com/wp-vuln",source:"Wordfence（サンプル）"},
+    {title:"WooCommerce にXSSの脆弱性、パッチ適用版が公開",summary:"特定の入力欄経由でスクリプトが挿入される問題。ECサイト運用者は優先度高めで対応が必要です。",url:"https://example.com/woo-xss",source:"Patchstack（サンプル）"},
+    {title:"Gutenberg 20.x、データビューとブロック管理を拡張",summary:"投稿一覧の絞り込みや一括操作が改善。次期コアへの取り込みが見込まれています。",url:"https://example.com/gutenberg",source:"Make WordPress（サンプル）"},
+  ],
+  hrtech:[
+    {title:"国内HR SaaS大手、シリーズEで大型調達。タレントマネジメント強化へ",summary:"調達資金は人材データ基盤とAI機能の開発に充当。中堅企業向けの導入支援も拡充する方針です。",url:"https://example.com/hr-funding",source:"TechCrunch Japan（サンプル）"},
+    {title:"人事評価SaaS、生成AIによる評価コメントの下書き支援を追加",summary:"評価者の記述負担を軽減する新機能。過去の目標データを踏まえた文面を提案します。",url:"https://example.com/hr-ai",source:"HR NOTE（サンプル）"},
+    {title:"勤怠と労務のデータ連携を拡張、月次処理を自動化",summary:"打刻データから給与・保険手続きまでの流れを一気通貫に。担当者の手作業を削減します。",url:"https://example.com/hr-rounui",source:"ITmedia（サンプル）"},
+    {title:"組織サーベイの新プランを提供開始、離職予兆の可視化に対応",summary:"従業員コンディションを定点観測し、部署別の傾向をダッシュボード化する内容です。",url:"https://example.com/hr-survey",source:"PR TIMES（サンプル）"},
+  ],
+  design:[
+    {title:"2026年のUIトレンド：機能的ミニマリズムと「静かなUI」",summary:"装飾を抑え、余白と階層で情報を整理する方向性が主流に。可読性とアクセシビリティが重視されています。",url:"https://example.com/ui-trend",source:"Smashing Magazine（サンプル）"},
+    {title:"Figma、Dev Mode にコード接続の新機能を追加",summary:"デザインと実装コンポーネントの対応付けが容易に。ハンドオフの手戻りを減らす狙いです。",url:"https://example.com/figma-dev",source:"Figma Blog（サンプル）"},
+    {title:"今週の注目サイト：余白を活かしたポートフォリオ事例",summary:"タイポグラフィと間（ま）で構成された作例。派手な演出に頼らない設計が評価されています。",url:"https://example.com/awwwards",source:"Awwwards（サンプル）"},
+    {title:"ダークモード設計の実務チェックリスト",summary:"コントラスト比・彩度・境界線の扱いを具体例で解説。両テーマで破綻しない配色設計の指針です。",url:"https://example.com/darkmode",source:"A List Apart（サンプル）"},
+  ],
+};
+
+// 自由枠：キーワードから作るサンプル
+function customSamples(kw){
+  return [
+    {title:`「${kw}」の最新動向まとめ`,summary:`${kw} に関する直近の話題を集めた記事です。実装時はここにClaude APIの検索結果が入ります。`,url:"https://example.com/custom-1",source:"サンプル媒体A"},
+    {title:`${kw} を実務に取り入れる際のポイント`,summary:`導入の勘所や注意点を整理した内容。${kw} の基礎から応用までを扱います。`,url:"https://example.com/custom-2",source:"サンプル媒体B"},
+    {title:`事例：${kw} を活用したWebデザインの改善`,summary:`具体的な適用例を紹介。ビフォーアフターで効果を示しています。`,url:"https://example.com/custom-3",source:"サンプル媒体C"},
+  ];
+}
+
+// アプリの状態（本物と同じ形：panels と customKeyword）
+// 初回訪問の「前回結果が即表示」を再現するため、あらかじめ数件入れておく
+const state = {
+  panels:{
+    wordpress:{ updatedAt:isoAgo(2,14,30), items:withRead(SAMPLES.wordpress.slice(0,3),{0:true}) },
+    hrtech:{ updatedAt:isoAgo(3,9,12), items:withRead(SAMPLES.hrtech.slice(0,3),{}) },
+    design:{ updatedAt:null, items:[] },
+    custom:{ updatedAt:null, items:[] },
+  },
+  customKeyword:"",
+};
+const loading = {};              // 枠ごとのローディング（本物と同じく独立）
+const errorFlag = {};
+
+// --- ここから下は表示と操作 ---
+
+function isoAgo(days,h,m){ const d=new Date(); d.setDate(d.getDate()-days); d.setHours(h,m,0,0); return d.toISOString(); }
+function withRead(items,readMap){ return items.map((it,i)=>({...it, read:!!readMap[i]})); }
+
+// 更新日時を「7/6 14:30 更新」形式にする
+function fmt(iso){
+  if(!iso) return "未取得";
+  const d=new Date(iso);
+  const mm=String(d.getMinutes()).padStart(2,"0");
+  return `${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${mm} 更新`;
+}
+
+// 画面全体を組み立てる
+function render(){
+  const grid=document.getElementById("grid");
+  grid.innerHTML="";
+  PANELS.forEach(p=>grid.appendChild(renderPanel(p)));
+}
+
+// パネル1枚を作る
+function renderPanel(p){
+  const ps=state.panels[p.id];
+  const isCustom=p.id==="custom";
+  const noKw=isCustom && !state.customKeyword.trim();
+
+  const el=document.createElement("section");
+  el.className="panel "+p.cls;
+
+  const bar=document.createElement("div"); bar.className="bar"; el.appendChild(bar);
+  const body=document.createElement("div"); body.className="body"; el.appendChild(body);
+
+  // ヘッダー：名前・更新日時・更新ボタン
+  const head=document.createElement("div"); head.className="head";
+  const hl=document.createElement("div");
+  hl.innerHTML=`<h2>${p.name}</h2><div class="stamp">${fmt(ps.updatedAt)}</div>`;
+  const btn=document.createElement("button"); btn.className="btn"; btn.textContent="更新";
+  btn.disabled = !!loading[p.id] || noKw;
+  btn.onclick=()=>update(p.id);
+  head.appendChild(hl); head.appendChild(btn);
+  body.appendChild(head);
+
+  // 自由枠だけ：キーワード入力＋保存
+  if(isCustom){
+    const row=document.createElement("div"); row.className="kwrow";
+    let draftKeyword=state.customKeyword;
+    const input=document.createElement("input");
+    input.type="text"; input.placeholder="キーワードを入力"; input.value=state.customKeyword;
+    input.oninput=e=>{ draftKeyword=e.target.value; };
+    const save=document.createElement("button"); save.className="save"; save.textContent="保存";
+    save.onclick=()=>{ state.customKeyword=draftKeyword.trim(); render(); };
+    row.appendChild(input); row.appendChild(save);
+    body.appendChild(row);
+  }
+
+  // 本文
+  const content=document.createElement("div"); content.className="content";
+
+  if(loading[p.id]){
+    content.innerHTML=`<div class="loading"><span class="spin"></span>検索中… 10〜30秒かかります</div>`;
+  } else {
+    let html="";
+    if(errorFlag[p.id]) html+=`<div class="err">取得に失敗しました。もう一度お試しください</div>`;
+    if(noKw){
+      html+=`<div class="empty">キーワードを設定してください</div>`;
+    } else if(ps.items.length>0){
+      html+=`<ul class="arts">`+ps.items.map((it,i)=>articleHTML(it,p.id,i)).join("")+`</ul>`;
+    } else if(ps.updatedAt){
+      html+=`<div class="empty">新しい情報が見つかりませんでした</div>`;
+    }
+    content.innerHTML=html;
+  }
+  body.appendChild(content);
+  return el;
+}
+
+// 記事1件のHTML
+function articleHTML(it,pid,i){
+  return `<li class="${it.read?"read":""}">
+    <input type="checkbox" ${it.read?"checked":""} onchange="toggleRead('${pid}',${i})" aria-label="既読">
+    <div class="art">
+      <a href="${it.url}" target="_blank" rel="noopener noreferrer">${it.title}</a>
+      <div class="src">${it.source}</div>
+      <div class="sum">${it.summary}</div>
+    </div>
+  </li>`;
+}
+
+// 既読トグル
+function toggleRead(pid,i){
+  const it=state.panels[pid].items[i];
+  it.read=!it.read;
+  render();
+}
+
+// 更新（本物と同じ流れをモックで再現）
+function update(pid){
+  if(loading[pid]) return;
+  loading[pid]=true; errorFlag[pid]=false;
+  render();
+
+  // API呼び出し＋パースの代わりに、少し待ってサンプルを返す
+  setTimeout(()=>{
+    // 前回と同じURLの記事は既読を引き継ぐ
+    const prev=state.panels[pid].items;
+    const readByUrl={}; prev.forEach(it=>readByUrl[it.url]=it.read);
+
+    let fresh;
+    if(pid==="custom"){
+      fresh=customSamples(state.customKeyword.trim());
+    } else {
+      // 「新しい結果」に見えるよう並びを少し変えて全件返す
+      fresh=SAMPLES[pid].slice().reverse();
+    }
+    const merged=fresh.map(it=>({...it, read:!!readByUrl[it.url]}));
+
+    // 記事リストを置き換え＋更新日時を更新
+    state.panels[pid]={ updatedAt:new Date().toISOString(), items:merged };
+    loading[pid]=false;
+    render();
+  }, 1300);
+}
+
+render();
+</script>
