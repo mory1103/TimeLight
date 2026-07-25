@@ -98,6 +98,7 @@ body{
 .icon-btn:active{transform:scale(.95)}
 .icon-btn .icon{font-size:20px}
 .icon-btn.plain{background:var(--chip-bg);color:var(--ink)}
+.icon-btn.plain:hover{background:#E5E4DA;border-color:#D4D3C6}
 
 .back-btn{
   background:none;border:none;color:var(--ink);font:inherit;
@@ -150,10 +151,6 @@ body{
 .day-chip.active{
   color:var(--lime-ink);background:var(--lime-grad);
   box-shadow:var(--lime-glow);
-}
-.day-chip-dot{
-  position:absolute;left:50%;bottom:7px;transform:translateX(-50%);
-  width:4px;height:4px;border-radius:50%;background:currentColor;opacity:.55;
 }
 
 .day-summary-row{
@@ -267,30 +264,6 @@ body{
 
 /* SCREEN CONTAINER */
 .screens{position:relative;flex:1;overflow:hidden}
-
-/* BOTTOM NAV */
-.bottom-nav{
-  height:var(--nav-h);display:flex;background:var(--bg);
-  border-top:1px solid var(--border);flex:none;
-  padding-bottom:env(safe-area-inset-bottom);position:relative;
-}
-.nav-indicator{
-  position:absolute;top:0;left:0;background:var(--chip-bg);
-  border-radius:14px;z-index:0;pointer-events:none;
-  transition:transform .34s cubic-bezier(.4,0,.2,1),
-             width .34s cubic-bezier(.4,0,.2,1),
-             height .34s cubic-bezier(.4,0,.2,1);
-}
-.nav-indicator.no-anim{transition:none}
-@media(prefers-reduced-motion:reduce){.nav-indicator{transition:none}}
-.nav-item{
-  flex:1;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;gap:3px;border:none;background:none;cursor:pointer;
-  color:var(--ink3);font-size:10px;font-family:inherit;padding:0;
-  transition:color .2s;position:relative;z-index:1;font-weight:500;
-}
-.nav-item.active{color:var(--lime-ink);font-weight:700}
-.nav-icon{font-size:23px;line-height:1}
 
 /* STATS */
 .scroll-view{
@@ -433,7 +406,7 @@ body{
 .pal-sw.on .icon{opacity:1;transform:scale(1)}
 
 /* TOAST */
-.toast{position:fixed;bottom:calc(var(--nav-h) + 12px);left:50%;transform:translateX(-50%) translateY(16px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s,transform .2s;z-index:300;white-space:nowrap;pointer-events:none}
+.toast{position:fixed;bottom:calc(var(--ad-h) + 12px);left:50%;transform:translateX(-50%) translateY(16px);background:var(--ink);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;opacity:0;transition:opacity .2s,transform .2s;z-index:300;white-space:nowrap;pointer-events:none}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* EMPTY */
@@ -445,8 +418,6 @@ body{
   .screens{position:relative;flex:1}
   .screen{bottom:0}
   .ad-area{border-top:none;border-left:1px solid var(--border);width:100%}
-  .bottom-nav{flex-direction:column;height:auto;width:64px;border-top:none;border-right:1px solid var(--border);order:-1}
-  .nav-item{padding:14px 0}
   .modal-bg{align-items:center}
   .modal{border-radius:var(--r);max-width:380px;max-height:80vh}
   .modal-handle{display:none}
@@ -465,7 +436,11 @@ body{
       <div class="seg-wrap">
         <button class="seg-btn" id="seg-day" onclick="switchView('day')">1日</button>
         <button class="seg-btn active" id="seg-week" onclick="switchView('week')">週</button>
+        <button class="seg-btn" id="seg-stats" onclick="openStatsFromHeader()">内訳</button>
       </div>
+      <button class="icon-btn plain" onclick="goTo('scr-settings')" title="設定" style="width:32px;height:32px;border-radius:10px;border:1px solid var(--border);color:#4A4A42">
+        <svg class="icon" viewBox="0 -960 960 960"><path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm70-80h79l14-106q31-8 57.5-23.5T639-327l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q22 23 48.5 38.5T427-266l13 106Zm42-180q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Zm-2-140Z"/></svg>
+      </button>
       <button class="icon-btn" onclick="openAddBlock(null,true)" title="追加"><svg class="icon" viewBox="0 -960 960 960" ><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></svg></button>
     </div>
   </div>
@@ -494,7 +469,10 @@ body{
 
 <!-- ===== STATS ===== -->
 <div class="screen" id="scr-stats">
-  <div class="topbar"><span class="topbar-title">週のコミット</span></div>
+  <div class="topbar">
+    <button class="back-btn" onclick="goBack()"><svg class="icon" viewBox="0 -960 960 960"><path d="M560-240 320-480l240-240 56 56-184 184 184 184-56 56Z"/></svg></button>
+    <span class="topbar-title" style="margin-left:2px">週のコミット</span>
+  </div>
   <div class="scroll-view">
     <div class="card">
       <div class="card-title">カテゴリ別の割合</div>
@@ -506,7 +484,10 @@ body{
 
 <!-- ===== SETTINGS TOP ===== -->
 <div class="screen" id="scr-settings">
-  <div class="topbar"><span class="topbar-title">設定</span></div>
+  <div class="topbar">
+    <button class="back-btn" onclick="goBack()"><svg class="icon" viewBox="0 -960 960 960"><path d="M560-240 320-480l240-240 56 56-184 184 184 184-56 56Z"/></svg></button>
+    <span class="topbar-title" style="margin-left:2px">設定</span>
+  </div>
   <div class="scroll-view">
     <div class="list-card">
       <div class="list-row" onclick="goTo('scr-notif')">
@@ -569,19 +550,6 @@ body{
   <span class="ad-placeholder">広告エリア（320×50）</span>
 </div>
 
-<!-- ===== BOTTOM NAV ===== -->
-<div class="bottom-nav" id="bottomNav">
-  <span class="nav-indicator" id="navIndicator"></span>
-  <button class="nav-item active" onclick="switchTab('home',this)">
-    <span class="nav-icon"><svg class="icon" viewBox="0 -960 960 960"><path d="M200-80q-33 0-56.5-23.5T120-160v-560q0-33 23.5-56.5T200-800h40v-80h80v80h320v-80h80v80h40q33 0 56.5 23.5T840-720v560q0 33-23.5 56.5T760-80H200Zm0-80h560v-400H200v400Zm0-480h560v-80H200v80Zm0 0v-80 80Zm280 240q-17 0-28.5-11.5T440-440q0-17 11.5-28.5T480-480q17 0 28.5 11.5T520-440q0 17-11.5 28.5T480-400Zm-188.5-11.5Q280-423 280-440t11.5-28.5Q303-480 320-480t28.5 11.5Q360-457 360-440t-11.5 28.5Q337-400 320-400t-28.5-11.5ZM640-400q-17 0-28.5-11.5T600-440q0-17 11.5-28.5T640-480q17 0 28.5 11.5T680-440q0 17-11.5 28.5T640-400ZM480-240q-17 0-28.5-11.5T440-280q0-17 11.5-28.5T480-320q17 0 28.5 11.5T520-280q0 17-11.5 28.5T480-240Zm-188.5-11.5Q280-263 280-280t11.5-28.5Q303-320 320-320t28.5 11.5Q360-297 360-280t-11.5 28.5Q337-240 320-240t-28.5-11.5ZM640-240q-17 0-28.5-11.5T600-280q0-17 11.5-28.5T640-320q17 0 28.5 11.5T680-280q0 17-11.5 28.5T640-240Z"/></svg></span><span>スケジュール</span>
-  </button>
-  <button class="nav-item" onclick="switchTab('stats',this)">
-    <span class="nav-icon"><svg class="icon" viewBox="0 -960 960 960"><path d="M441-82Q287-97 184-211T81-480q0-155 103-269t257-129v120q-104 14-172 93t-68 185q0 106 68 185t172 93v120Zm80 0v-120q94-12 159-78t79-160h120q-14 143-114.5 243.5T521-82Zm238-438q-14-94-79-160t-159-78v-120q143 14 243.5 114.5T879-520H759Z"/></svg></span><span>コミット</span>
-  </button>
-  <button class="nav-item" onclick="switchTab('settings',this)">
-    <span class="nav-icon"><svg class="icon" viewBox="0 -960 960 960"><path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm70-80h79l14-106q31-8 57.5-23.5T639-327l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q22 23 48.5 38.5T427-266l13 106Zm42-180q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Zm-2-140Z"/></svg></span><span>設定</span>
-  </button>
-</div>
 
 <!-- ===== MODAL: ブロック ===== -->
 <div class="modal-bg" id="blockModal">
@@ -756,7 +724,6 @@ let activeDayIndex=(()=>{const d=new Date().getDay();return d===0?6:d-1;})();
 let editingBlock=null,editingCat=null,selNotifMin=10,selColor=PAL[0];
 let copySet=new Set(),catFromBlock=false,copyFreeMode=false;
 
-let activeTab='home';
 let settingStack=[];
 
 function defCats(){
@@ -773,38 +740,6 @@ function defCats(){
 /* ============================================================
    NAVIGATION
    ============================================================ */
-const TAB_SCREENS={home:'scr-home',stats:'scr-stats',settings:'scr-settings'};
-const TAB_ORDER=['home','stats','settings'];
-
-function switchTab(tab,btn){
-  const prev=activeTab;
-  activeTab=tab;
-  settingStack=[];
-
-  const fromEl=document.querySelector('.screen.active');
-  const toEl=document.getElementById(TAB_SCREENS[tab]);
-  if(fromEl===toEl){return;}
-
-  _animate(fromEl, toEl, 'fade');
-
-  document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  moveNavIndicator(btn,true);
-  if(tab==='stats') renderStats();
-}
-
-function moveNavIndicator(btn,animate){
-  const nav=document.getElementById('bottomNav');
-  const ind=document.getElementById('navIndicator');
-  if(!nav||!ind||!btn) return;
-  const r=btn.getBoundingClientRect(), nr=nav.getBoundingClientRect();
-  const padX=10, padY=8;
-  if(!animate) ind.classList.add('no-anim');
-  ind.style.width=(r.width-padX*2)+'px';
-  ind.style.height=(r.height-padY*2)+'px';
-  ind.style.transform=`translate(${r.left-nr.left+padX}px, ${r.top-nr.top+padY}px)`;
-  if(!animate){ void ind.offsetWidth; ind.classList.remove('no-anim'); }
-}
 
 function goTo(screenId){
   const fromEl=document.querySelector('.screen.active');
@@ -821,6 +756,11 @@ function goBack(){
   const fromEl=document.querySelector('.screen.active');
   const toEl=document.getElementById(prevId);
   _animate(fromEl, toEl, 'pop');
+}
+
+function openStatsFromHeader(){
+  goTo('scr-stats');
+  renderStats();
 }
 
 /* ============================================================
@@ -983,11 +923,6 @@ function buildDayChips(){
   DAYS.forEach((d,i)=>{
     const btn=mk('button','day-chip'+(i===activeDayIndex?' active':''));
     btn.textContent=d;
-    const hasBlocks=blocks.some(b=>b.dayIndex===i);
-    if(hasBlocks){
-      const dot=mk('span','day-chip-dot');
-      btn.appendChild(dot);
-    }
     btn.addEventListener('click',()=>selectDay(i));
     wrap.appendChild(btn);
   });
@@ -1581,7 +1516,6 @@ if(blocks.length===0)insertDemo();
 buildDayView();
 buildWeekView();
 document.getElementById('cr-year').textContent = new Date().getFullYear();
-moveNavIndicator(document.querySelector('.nav-item.active'),false);
 
 let resizeTimer;
 window.addEventListener('resize',()=>{
@@ -1589,7 +1523,6 @@ window.addEventListener('resize',()=>{
   resizeTimer=setTimeout(()=>{
     if(currentView==='day'){ renderDayTimeline(); }
     else if(currentView==='week'){ buildWeekView(); }
-    moveNavIndicator(document.querySelector('.nav-item.active'),false);
   },120);
 });
 </script>
