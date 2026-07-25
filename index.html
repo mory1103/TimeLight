@@ -223,7 +223,7 @@ body{
   display:flex;align-items:center;justify-content:center;
   font:inherit;font-family:inherit;font-size:11px;font-weight:700;
   color:var(--chip-ink);background:var(--chip-bg);
-  border:none;cursor:pointer;
+  border:none;cursor:default;user-select:none;
 }
 .wk-day-hd.today{
   color:var(--lime-ink);background:var(--lime-grad);
@@ -886,13 +886,9 @@ function buildWeekHeader(){
   hd.innerHTML='';
   hd.appendChild(mk('div','wk-day-hd-empty'));
   DAYS.forEach((d,i)=>{
-    const btn=mk('button','wk-day-hd'+(i===activeDayIndex?' today':''));
-    btn.textContent=d;
-    btn.addEventListener('click',()=>{
-      activeDayIndex=i;
-      buildWeekHeader();
-    });
-    hd.appendChild(btn);
+    const lbl=mk('div','wk-day-hd'+(i===activeDayIndex?' today':''));
+    lbl.textContent=d;
+    hd.appendChild(lbl);
   });
 }
 
