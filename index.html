@@ -220,10 +220,6 @@ body{
   color:var(--chip-ink);background:var(--chip-bg);
   border:none;cursor:default;user-select:none;
 }
-.wk-day-hd.today{
-  color:var(--lime-ink);background:var(--lime-grad);
-  box-shadow:var(--lime-glow);
-}
 
 .week-scroll{
   flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
@@ -465,7 +461,7 @@ body{
       <div class="seg-wrap">
         <button class="seg-btn" id="seg-day" onclick="switchView('day')">1日</button>
         <button class="seg-btn active" id="seg-week" onclick="switchView('week')">週</button>
-        <button class="seg-btn" id="seg-stats" onclick="openStatsFromHeader()">内訳</button>
+        <button class="seg-btn" id="seg-stats" onclick="switchView('stats')">内訳</button>
       </div>
       <button class="icon-btn plain" onclick="goTo('scr-settings')" title="設定" style="width:32px;height:32px;border-radius:10px;border:1px solid var(--border);color:#4A4A42">
         <svg class="icon" viewBox="0 -960 960 960"><path d="m370-80-16-128q-13-5-24.5-12T307-235l-119 50L78-375l103-78q-1-7-1-13.5v-27q0-6.5 1-13.5L78-585l110-190 119 50q11-8 23-15t24-12l16-128h220l16 128q13 5 24.5 12t22.5 15l119-50 110 190-103 78q1 7 1 13.5v27q0 6.5-2 13.5l103 78-110 190-118-50q-11 8-23 15t-24 12L590-80H370Zm70-80h79l14-106q31-8 57.5-23.5T639-327l99 41 39-68-86-65q5-14 7-29.5t2-31.5q0-16-2-31.5t-7-29.5l86-65-39-68-99 42q-22-23-48.5-38.5T533-694l-13-106h-79l-14 106q-31 8-57.5 23.5T321-633l-99-41-39 68 86 64q-5 15-7 30t-2 32q0 16 2 31t7 30l-86 65 39 68 99-42q22 23 48.5 38.5T427-266l13 106Zm42-180q58 0 99-41t41-99q0-58-41-99t-99-41q-59 0-99.5 41T342-480q0 58 40.5 99t99.5 41Zm-2-140Z"/></svg>
@@ -494,18 +490,11 @@ body{
     <div class="week-header" id="weekHeader"></div>
     <div class="week-scroll" id="weekScroll"></div>
   </div>
-</div>
 
-<!-- ===== STATS ===== -->
-<div class="screen" id="scr-stats">
-  <div class="topbar">
-    <button class="back-btn" onclick="goBack()"><svg class="icon" viewBox="0 -960 960 960"><path d="M560-240 320-480l240-240 56 56-184 184 184 184-56 56Z"/></svg></button>
-    <span class="topbar-title" style="margin-left:2px">内訳</span>
-  </div>
-  <div class="stats-view">
+  <!-- 内訳ビュー -->
+  <div id="view-stats" class="stats-view" style="display:none">
     <div class="day-summary-row">
       <span class="day-summary-title">週のコミット</span>
-      <span class="day-summary-meta" id="statSumMeta"></span>
     </div>
     <div class="stats-scroll">
       <div class="pie-wrap">
@@ -825,22 +814,20 @@ function goBack(){
   _animate(fromEl, toEl, 'pop');
 }
 
-function openStatsFromHeader(){
-  goTo('scr-stats');
-  renderStats();
-}
-
 /* ============================================================
-   VIEW SWITCH
+   VIEW SWITCH — 1日 / 週 / 内訳 をホーム画面内で切り替える
    ============================================================ */
+const VIEWS=['day','week','stats'];
+
 function switchView(v){
   currentView=v;
-  document.getElementById('view-day').style.display  = v==='day'  ? 'flex' : 'none';
-  document.getElementById('view-week').style.display = v==='week' ? 'flex' : 'none';
-  document.getElementById('seg-day').classList.toggle('active',  v==='day');
-  document.getElementById('seg-week').classList.toggle('active', v==='week');
-  if(v==='week') buildWeekView();
-  if(v==='day'){ buildDayView(); }
+  VIEWS.forEach(name=>{
+    document.getElementById('view-'+name).style.display = name===v ? 'flex' : 'none';
+    document.getElementById('seg-'+name).classList.toggle('active', name===v);
+  });
+  if(v==='day')   buildDayView();
+  if(v==='week')  buildWeekView();
+  if(v==='stats') renderStats();
 }
 
 /* ============================================================
@@ -888,13 +875,13 @@ function buildWeekView(){
   buildWeekBody();
 }
 
-/* 週ビューの曜日見出しは選択不可。強調するのは「今日」のみ。 */
+/* 週ビューの曜日見出しは選択もハイライトもしない、ただのラベル。 */
 function buildWeekHeader(){
   const hd=document.getElementById('weekHeader');
   hd.innerHTML='';
   hd.appendChild(mk('div','wk-day-hd-empty'));
-  DAYS.forEach((d,i)=>{
-    const cell=mk('div','wk-day-hd'+(i===todayIndex?' today':''));
+  DAYS.forEach(d=>{
+    const cell=mk('div','wk-day-hd');
     cell.textContent=d;
     hd.appendChild(cell);
   });
@@ -1238,6 +1225,7 @@ async function deleteBlock(){
 
 function refreshCurrentView(){
   if(currentView==='day'){ buildDayChips(); renderDayTimeline(); }
+  else if(currentView==='stats'){ renderStats(); }
   else { buildWeekHeader(); renderWeekBlocks(); }
 }
 
@@ -1470,10 +1458,6 @@ function renderStats(){
 
   document.getElementById('pieTotal').textContent =
     total>0 ? fmtHours(total).replace('時間','h').replace('分','m') : '0h';
-
-  const meta=document.getElementById('statSumMeta');
-  const cnt=blocks.length;
-  meta.textContent = total>0 ? `${cnt}件 ・ 合計 ${fmtHours(total)}` : '';
 
   const list=document.getElementById('catStatList');
   if(entries.length===0){
