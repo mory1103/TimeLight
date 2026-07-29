@@ -82,7 +82,7 @@ body{
   background:var(--bg);border-bottom:1px solid var(--border);flex:none;
   padding-top:env(safe-area-inset-top);
 }
-.topbar-logo{height:27px;width:auto;display:block;flex:none}
+.topbar-logo{height:31px;width:auto;display:block;flex:none}
 .topbar-title{font-size:16px;font-weight:700;color:var(--ink);line-height:1}
 .topbar-right{margin-left:auto;display:flex;align-items:center;gap:8px}
 
@@ -275,7 +275,7 @@ body{
   flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
   padding:8px 0 12px;
 }
-.stats-summary-row{align-items:center}
+.stats-list-head{display:flex;justify-content:flex-end;margin-bottom:6px}
 .sort-btn{
   display:flex;align-items:center;gap:3px;flex:none;
   background:var(--chip-bg);border:none;border-radius:999px;
@@ -449,10 +449,13 @@ body{
 /* EMPTY */
 .empty-msg{padding:16px;font-size:13px;color:var(--ink3);text-align:center}
 
-/* 小型端末(iPhone SE 等)ではヘッダーが収まるよう各要素を詰める */
-@media(max-width:359px){
+/* 幅の狭い端末ではヘッダーが収まるようロゴと各要素を段階的に詰める */
+@media(max-width:389px){          /* 360〜389px: Android標準 / iPhone SE2・8 など */
+  .topbar-logo{height:26px}
+}
+@media(max-width:359px){          /* 〜359px: iPhone SE(第1世代) など */
   .topbar{padding-left:12px;padding-right:12px;gap:6px}
-  .topbar-logo{height:22px}
+  .topbar-logo{height:25px}
   .seg-btn{padding:6px 9px}
 }
 
@@ -512,12 +515,8 @@ body{
 
   <!-- 内訳ビュー -->
   <div id="view-stats" class="stats-view" style="display:none">
-    <div class="day-summary-row stats-summary-row">
+    <div class="day-summary-row">
       <span class="day-summary-title">週のコミット</span>
-      <button class="sort-btn" id="statSortBtn" onclick="toggleStatSort()">
-        <span>総時間</span>
-        <svg class="icon" viewBox="0 -960 960 960"><path d="M440-800v487L216-537l-56 57 320 320 320-320-56-57-224 224v-487h-80Z"/></svg>
-      </button>
     </div>
     <div class="stats-scroll">
       <div class="pie-wrap">
@@ -526,6 +525,12 @@ body{
           <span class="pie-center-val" id="pieTotal">0h</span>
           <span class="pie-center-sub">週合計</span>
         </div>
+      </div>
+      <div class="stats-list-head">
+        <button class="sort-btn" id="statSortBtn" onclick="toggleStatSort()">
+          <span>総時間</span>
+          <svg class="icon" viewBox="0 -960 960 960"><path d="M440-800v487L216-537l-56 57 320 320 320-320-56-57-224 224v-487h-80Z"/></svg>
+        </button>
       </div>
       <div id="catStatList"></div>
     </div>
@@ -718,7 +723,7 @@ function openExternalLink(key){
 /* ============================================================
    STORE
    ============================================================ */
-const PAL_VERSION=2;
+const PAL_VERSION=3;
 const Store={
   B:'routine.blocks.v2',C:'routine.cats.v3',N:'routine.notif.v1',
   P:'routine.palette.v1',
@@ -737,10 +742,12 @@ const Store={
    ============================================================ */
 /* ブランドカラー: ネイビー #222B35 / ライム #C0D72D（ロゴより採取）
    ライムの色相(117.5°)とネイビーの色相(251.3°)を基準に、OKLCH上で
-   明度・彩度を揃えて生成。全色ネイビー文字でコントラスト比 4.6:1 以上。 */
-const BRAND_INK='#222B35';
-const PAL=['#419BF5','#E29A30','#3BD67E','#D367DF','#F6633D','#9383F5',
-           '#3DD3CB','#B8CE38','#F65896','#38C2DF'];
+   色相を等間隔配置。予定ブロックは白文字のため、白とのコントラスト比
+   4.6:1 を満たす範囲で最も明るい(=最も鮮やかな)明度を色相ごとに採用。
+   結果の明度は 0.54〜0.58 に収まり、全色が同じトーンで揃う。 */
+const BLOCK_INK='#FFFFFF';
+const PAL=['#1B76C9','#9C681A','#1C834A','#AE49B9','#D0431B','#755DDF',
+           '#1D827C','#6D7A19','#CC3977','#1D7E93'];
 /* 旧パレット（同じ並び順）。インデックス対応で現行パレットへ移行する。 */
 const LEGACY_PALS=[
   /* v0 パステル */
@@ -749,6 +756,9 @@ const LEGACY_PALS=[
   /* v1 ビビッド（ブランド調整前） */
   ['#2C63D6','#F5A623','#00A578','#D92B7A','#D2400F','#6A48D7',
    '#16B0D2','#B4CC1E','#D22B2B','#9D3FBC'],
+  /* v2 ブランド調（ネイビー文字前提の明るいトーン） */
+  ['#419BF5','#E29A30','#3BD67E','#D367DF','#F6633D','#9383F5',
+   '#3DD3CB','#B8CE38','#F65896','#38C2DF'],
 ];
 const PAL_MIGRATE=(()=>{
   const m={};
@@ -757,9 +767,9 @@ const PAL_MIGRATE=(()=>{
 })();
 const PAL_SET=new Set(PAL);
 function getInkForBg(hex){
-  if(!hex) return BRAND_INK;
+  if(!hex) return BLOCK_INK;
   const h=hex.toUpperCase();
-  if(PAL_SET.has(h)) return BRAND_INK;   // パレット内は全色ネイビー文字
+  if(PAL_SET.has(h)) return BLOCK_INK;   // パレット内は全色white文字
   return fgColor(hex);                   // ユーザー独自色は輝度で判定
 }
 
@@ -791,12 +801,12 @@ let settingStack=[];
 
 function defCats(){
   return[
-    {id:'c1',name:'仕事',color:'#419BF5'},
-    {id:'c2',name:'睡眠',color:'#9383F5'},
-    {id:'c3',name:'食事',color:'#E29A30'},
-    {id:'c4',name:'運動',color:'#3BD67E'},
-    {id:'c5',name:'自由',color:'#D367DF'},
-    {id:'c6',name:'会議',color:'#F6633D'},
+    {id:'c1',name:'仕事',color:'#1B76C9'},
+    {id:'c2',name:'睡眠',color:'#755DDF'},
+    {id:'c3',name:'食事',color:'#9C681A'},
+    {id:'c4',name:'運動',color:'#1C834A'},
+    {id:'c5',name:'自由',color:'#AE49B9'},
+    {id:'c6',name:'会議',color:'#D0431B'},
   ];
 }
 
@@ -1459,8 +1469,8 @@ function renderStats(){
     const[sh,sm]=b.start.split(':').map(Number),[eh,em]=b.end.split(':').map(Number);
     const dur=(eh+em/60)-(sh+sm/60);if(dur>0)totals[b.catId]=(totals[b.catId]||0)+dur;
   });
-  const entries=Object.entries(totals).filter(([,v])=>v>0)
-    .sort((a,b)=> statSortDesc ? b[1]-a[1] : a[1]-b[1]);
+  /* 円グラフは常に総時間の降順で固定。並び替えはリストのみに効かせる。 */
+  const entries=Object.entries(totals).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
   const total=entries.reduce((s,[,v])=>s+v,0);
   const denom=total||1;
 
@@ -1492,11 +1502,15 @@ function renderStats(){
     total>0 ? fmtHours(total).replace('時間','h').replace('分','m') : '0h';
 
   const list=document.getElementById('catStatList');
+  document.querySelector('.stats-list-head').style.display =
+    entries.length===0 ? 'none' : 'flex';
   if(entries.length===0){
     list.innerHTML='<div class="empty-msg">予定を追加すると集計されます</div>';
     return;
   }
-  list.innerHTML=entries.map(([catId,val])=>{
+  /* リストだけ昇順/降順を切り替える（entries は降順なので昇順は反転） */
+  const listEntries = statSortDesc ? entries : [...entries].reverse();
+  list.innerHTML=listEntries.map(([catId,val])=>{
     const cat=cats.find(c=>c.id===catId);
     const bg=cat?cat.color:'#8F8F85';
     return `<div class="cat-stat-row">
