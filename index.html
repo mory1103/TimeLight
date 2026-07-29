@@ -275,6 +275,18 @@ body{
   flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
   padding:8px 0 12px;
 }
+.stats-summary-row{align-items:center}
+.sort-btn{
+  display:flex;align-items:center;gap:3px;flex:none;
+  background:var(--chip-bg);border:none;border-radius:999px;
+  padding:5px 8px 5px 11px;font:inherit;font-family:inherit;
+  font-size:11px;font-weight:600;color:var(--chip-ink);cursor:pointer;
+  transition:background .15s;
+}
+.sort-btn:active{background:#E5E4DA}
+.sort-btn .icon{font-size:14px;transition:transform .2s}
+.sort-btn.asc .icon{transform:rotate(180deg)}
+@media(prefers-reduced-motion:reduce){.sort-btn .icon{transition:none}}
 .pie-wrap{
   display:flex;justify-content:center;align-items:center;
   position:relative;margin:2px 0 27px;
@@ -500,8 +512,12 @@ body{
 
   <!-- 内訳ビュー -->
   <div id="view-stats" class="stats-view" style="display:none">
-    <div class="day-summary-row">
+    <div class="day-summary-row stats-summary-row">
       <span class="day-summary-title">週のコミット</span>
+      <button class="sort-btn" id="statSortBtn" onclick="toggleStatSort()">
+        <span>総時間</span>
+        <svg class="icon" viewBox="0 -960 960 960"><path d="M440-800v487L216-537l-56 57 320 320 320-320-56-57-224 224v-487h-80Z"/></svg>
+      </button>
     </div>
     <div class="stats-scroll">
       <div class="pie-wrap">
@@ -702,7 +718,7 @@ function openExternalLink(key){
 /* ============================================================
    STORE
    ============================================================ */
-const PAL_VERSION=1;
+const PAL_VERSION=2;
 const Store={
   B:'routine.blocks.v2',C:'routine.cats.v3',N:'routine.notif.v1',
   P:'routine.palette.v1',
@@ -717,38 +733,34 @@ const Store={
 };
 
 /* ============================================================
-   STATE — ロゴ準拠のビビッドパレット
+   STATE — ブランドカラーに色調を揃えたビビッドパレット
    ============================================================ */
 /* ブランドカラー: ネイビー #222B35 / ライム #C0D72D（ロゴより採取）
-   各色は白 or ネイビーのインクとコントラスト比 4.5:1 以上を確保 */
+   ライムの色相(117.5°)とネイビーの色相(251.3°)を基準に、OKLCH上で
+   明度・彩度を揃えて生成。全色ネイビー文字でコントラスト比 4.6:1 以上。 */
 const BRAND_INK='#222B35';
-const PAL=['#2C63D6','#F5A623','#00A578','#D92B7A','#D2400F','#6A48D7',
-           '#16B0D2','#B4CC1E','#D22B2B','#9D3FBC'];
-/* 背景色 → インク色 */
-const INK_MAP={
-  '#2C63D6':'#FFFFFF',
-  '#6A48D7':'#FFFFFF',
-  '#D92B7A':'#FFFFFF',
-  '#D2400F':'#FFFFFF',
-  '#D22B2B':'#FFFFFF',
-  '#9D3FBC':'#FFFFFF',
-  '#F5A623':BRAND_INK,
-  '#00A578':BRAND_INK,
-  '#16B0D2':BRAND_INK,
-  '#B4CC1E':BRAND_INK,
-};
-/* 旧パステルパレット → 新ビビッドパレットの移行マップ */
-const PAL_MIGRATE={
-  '#E1E6EC':'#2C63D6','#EAE3D6':'#F5A623','#DCE6E1':'#00A578',
-  '#E8DCE0':'#D92B7A','#E6DAD2':'#D2400F','#DEDCE8':'#6A48D7',
-  '#EFEEE6':'#16B0D2','#E9E3D5':'#B4CC1E','#DDE2DE':'#D22B2B',
-  '#E3DEDC':'#9D3FBC',
-};
+const PAL=['#419BF5','#E29A30','#3BD67E','#D367DF','#F6633D','#9383F5',
+           '#3DD3CB','#B8CE38','#F65896','#38C2DF'];
+/* 旧パレット（同じ並び順）。インデックス対応で現行パレットへ移行する。 */
+const LEGACY_PALS=[
+  /* v0 パステル */
+  ['#E1E6EC','#EAE3D6','#DCE6E1','#E8DCE0','#E6DAD2','#DEDCE8',
+   '#EFEEE6','#E9E3D5','#DDE2DE','#E3DEDC'],
+  /* v1 ビビッド（ブランド調整前） */
+  ['#2C63D6','#F5A623','#00A578','#D92B7A','#D2400F','#6A48D7',
+   '#16B0D2','#B4CC1E','#D22B2B','#9D3FBC'],
+];
+const PAL_MIGRATE=(()=>{
+  const m={};
+  LEGACY_PALS.forEach(old=>old.forEach((c,i)=>{ m[c]=PAL[i]; }));
+  return m;
+})();
+const PAL_SET=new Set(PAL);
 function getInkForBg(hex){
   if(!hex) return BRAND_INK;
   const h=hex.toUpperCase();
-  if(INK_MAP[h]) return INK_MAP[h];
-  return fgColor(hex);
+  if(PAL_SET.has(h)) return BRAND_INK;   // パレット内は全色ネイビー文字
+  return fgColor(hex);                   // ユーザー独自色は輝度で判定
 }
 
 const DAYS=['月','火','水','木','金','土','日'];
@@ -779,22 +791,22 @@ let settingStack=[];
 
 function defCats(){
   return[
-    {id:'c1',name:'仕事',color:'#2C63D6'},
-    {id:'c2',name:'睡眠',color:'#6A48D7'},
-    {id:'c3',name:'食事',color:'#F5A623'},
-    {id:'c4',name:'運動',color:'#00A578'},
-    {id:'c5',name:'自由',color:'#D92B7A'},
-    {id:'c6',name:'会議',color:'#D2400F'},
+    {id:'c1',name:'仕事',color:'#419BF5'},
+    {id:'c2',name:'睡眠',color:'#9383F5'},
+    {id:'c3',name:'食事',color:'#E29A30'},
+    {id:'c4',name:'運動',color:'#3BD67E'},
+    {id:'c5',name:'自由',color:'#D367DF'},
+    {id:'c6',name:'会議',color:'#F6633D'},
   ];
 }
 
-/* 旧パステル配色で保存済みのカテゴリを一度だけビビッド配色へ移行 */
+/* 旧パレットで保存済みのカテゴリを現行パレットへ移行（ユーザー独自色は保持） */
 function migratePalette(){
-  if(Store.pal()) return;
+  if(Store.pal()>=PAL_VERSION) return;
   let changed=false;
   cats.forEach(c=>{
     const next=PAL_MIGRATE[(c.color||'').toUpperCase()];
-    if(next){ c.color=next; changed=true; }
+    if(next && next!==c.color){ c.color=next; changed=true; }
   });
   if(changed) Store.saveC(cats);
   Store.savePal(PAL_VERSION);
@@ -1421,6 +1433,13 @@ function renderCatSettings(){
 /* ============================================================
    STATS
    ============================================================ */
+/* 内訳リストの並び順（true=総時間の降順） */
+let statSortDesc=true;
+function toggleStatSort(){
+  statSortDesc=!statSortDesc;
+  renderStats();
+}
+
 function fmtHours(val){
   const hrs=Math.floor(val),mins=Math.round((val-hrs)*60);
   if(mins===60) return `${hrs+1}時間`;
@@ -1440,9 +1459,15 @@ function renderStats(){
     const[sh,sm]=b.start.split(':').map(Number),[eh,em]=b.end.split(':').map(Number);
     const dur=(eh+em/60)-(sh+sm/60);if(dur>0)totals[b.catId]=(totals[b.catId]||0)+dur;
   });
-  const entries=Object.entries(totals).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]);
+  const entries=Object.entries(totals).filter(([,v])=>v>0)
+    .sort((a,b)=> statSortDesc ? b[1]-a[1] : a[1]-b[1]);
   const total=entries.reduce((s,[,v])=>s+v,0);
   const denom=total||1;
+
+  const sortBtn=document.getElementById('statSortBtn');
+  sortBtn.classList.toggle('asc',!statSortDesc);
+  sortBtn.setAttribute('aria-label',
+    statSortDesc?'総時間の降順。押すと昇順に切り替え':'総時間の昇順。押すと降順に切り替え');
 
   const cx=SIZE/2,cy=SIZE/2,r=72,thick=26;
   ctx.lineCap='butt';
