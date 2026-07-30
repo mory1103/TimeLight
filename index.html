@@ -723,7 +723,7 @@ function openExternalLink(key){
 /* ============================================================
    STORE
    ============================================================ */
-const PAL_VERSION=3;
+const PAL_VERSION=4;
 const Store={
   B:'routine.blocks.v2',C:'routine.cats.v3',N:'routine.notif.v1',
   P:'routine.palette.v1',
@@ -738,17 +738,14 @@ const Store={
 };
 
 /* ============================================================
-   STATE — ブランドカラーに色調を揃えたビビッドパレット
+   STATE — 予定のカラーパレット（指定色・全て白文字）
    ============================================================ */
-/* ブランドカラー: ネイビー #222B35 / ライム #C0D72D（ロゴより採取）
-   ライムの色相(117.5°)とネイビーの色相(251.3°)を基準に、OKLCH上で
-   色相を等間隔配置。予定ブロックは白文字のため、白とのコントラスト比
-   4.6:1 を満たす範囲で最も明るい(=最も鮮やかな)明度を色相ごとに採用。
-   結果の明度は 0.54〜0.58 に収まり、全色が同じトーンで揃う。 */
 const BLOCK_INK='#FFFFFF';
-const PAL=['#1B76C9','#9C681A','#1C834A','#AE49B9','#D0431B','#755DDF',
-           '#1D827C','#6D7A19','#CC3977','#1D7E93'];
-/* 旧パレット（同じ並び順）。インデックス対応で現行パレットへ移行する。 */
+const PAL=['#BFD630','#D0403A','#2EB7D9','#28479C','#E7408D',
+           '#31A940','#F08527','#594599','#41657B'];
+/* 旧パレット。インデックス対応で現行パレットへ移行する
+   （旧10色→現行9色。溢れる10色目は末尾の色に寄せる。先頭へ回すと
+     最も使われる1色目と衝突するため） */
 const LEGACY_PALS=[
   /* v0 パステル */
   ['#E1E6EC','#EAE3D6','#DCE6E1','#E8DCE0','#E6DAD2','#DEDCE8',
@@ -759,10 +756,13 @@ const LEGACY_PALS=[
   /* v2 ブランド調（ネイビー文字前提の明るいトーン） */
   ['#419BF5','#E29A30','#3BD67E','#D367DF','#F6633D','#9383F5',
    '#3DD3CB','#B8CE38','#F65896','#38C2DF'],
+  /* v3 ブランド調（白文字前提の深いトーン） */
+  ['#1B76C9','#9C681A','#1C834A','#AE49B9','#D0431B','#755DDF',
+   '#1D827C','#6D7A19','#CC3977','#1D7E93'],
 ];
 const PAL_MIGRATE=(()=>{
   const m={};
-  LEGACY_PALS.forEach(old=>old.forEach((c,i)=>{ m[c]=PAL[i]; }));
+  LEGACY_PALS.forEach(old=>old.forEach((c,i)=>{ m[c]=PAL[Math.min(i,PAL.length-1)]; }));
   return m;
 })();
 const PAL_SET=new Set(PAL);
@@ -801,12 +801,12 @@ let settingStack=[];
 
 function defCats(){
   return[
-    {id:'c1',name:'仕事',color:'#1B76C9'},
-    {id:'c2',name:'睡眠',color:'#755DDF'},
-    {id:'c3',name:'食事',color:'#9C681A'},
-    {id:'c4',name:'運動',color:'#1C834A'},
-    {id:'c5',name:'自由',color:'#AE49B9'},
-    {id:'c6',name:'会議',color:'#D0431B'},
+    {id:'c1',name:'仕事',color:'#28479C'},
+    {id:'c2',name:'睡眠',color:'#594599'},
+    {id:'c3',name:'食事',color:'#F08527'},
+    {id:'c4',name:'運動',color:'#31A940'},
+    {id:'c5',name:'自由',color:'#E7408D'},
+    {id:'c6',name:'会議',color:'#D0403A'},
   ];
 }
 
